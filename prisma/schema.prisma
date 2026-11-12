@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Property (Apartment Complex) ───────────────────────────────────
+
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  address     String
+  city        String
+  state       String
+  zip         String
+  lat         Float
+  lng         Float
+  websiteUrl  String?
+  contactName String?
+  email       String   @unique
+  password    String
+  apiKey      String   @unique @default(cuid())
+  revSharePct Float    @default(0.25)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  impressions Impression[]
+  clicks      Click[]
+}
+
+// ─── Business ───────────────────────────────────────────────────────
+
+model Business {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  address          String
+  city             String
+  state            String
+  zip              String
+  lat              Float
+  lng              Float
+  phone            String?
+  websiteUrl       String?
+  logoUrl          String?
+  category         String
+  contactName      String?
+  email            String   @unique
+  password         String
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  offers      Offer[]
+  impressions Impression[]
+  clicks      Click[]
+}
+
+// ─── Offer (Coupon / Deal) ──────────────────────────────────────────
+
+model Offer {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  imageUrl    String?
+  redeemUrl   String?
+  radiusMiles Float     @default(3.0)
+  budgetCents Int       @default(10000)
+  spentCents  Int       @default(0)
+  cpcCents    Int       @default(50)
+  active      Boolean   @default(true)
+  startsAt    DateTime  @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  impressions Impression[]
+  clicks      Click[]
+
+  @@index([businessId])
+  @@index([active])
+}
+
+// ─── Tracking ───────────────────────────────────────────────────────
+
+model Impression {
+  id         String   @id @default(cuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([offerId])
+  @@index([propertyId])
+  @@index([createdAt])
+}
+
+model Click {
+  id         String   @id @default(cuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([offerId])
+  @@index([propertyId])
+  @@index([createdAt])
+}
