@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
         zip: true,
         apiKey: true,
         widgetEnabled: true,
+        widgetLastPing: true,
         revSharePct: true,
       },
     });

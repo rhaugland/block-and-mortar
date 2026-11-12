@@ -11,6 +11,7 @@ interface DashboardData {
     zip: string;
     apiKey: string;
     widgetEnabled: boolean;
+    widgetLastPing: string | null;
   };
   stats: {
     totalImpressions: number;
@@ -99,26 +100,48 @@ export default function PropertyDashboard() {
       </div>
 
       {/* Widget Status */}
-      <div className="mt-8 flex items-center justify-between rounded-2xl border border-glass-border bg-white/70 px-6 py-4 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className={`h-2.5 w-2.5 rounded-full ${widgetLive ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.4)]" : "bg-text-tertiary"}`} />
-          <div>
-            <p className="text-[15px] font-medium text-text-primary">
-              Widget is {widgetLive ? "live" : "off"}
-            </p>
-            <p className="text-[12px] text-text-tertiary">
-              {widgetLive ? "Visitors can see neighborhood perks on your site" : "The widget is hidden from your website visitors"}
-            </p>
+      {(() => {
+        const installed = data.property.widgetLastPing != null;
+        const recentPing = installed && (Date.now() - new Date(data.property.widgetLastPing!).getTime()) < 24 * 60 * 60 * 1000;
+
+        let dot: string, label: string, desc: string;
+        if (!widgetLive) {
+          dot = "bg-text-tertiary";
+          label = "Widget is off";
+          desc = "The widget is hidden from your website visitors";
+        } else if (recentPing) {
+          dot = "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.4)]";
+          label = "Widget is live";
+          desc = "Installed and showing on your website";
+        } else if (installed) {
+          dot = "bg-sunflower shadow-[0_0_6px_rgba(251,191,36,0.4)]";
+          label = "Widget installed — no recent activity";
+          desc = "The widget was detected but hasn\u2019t loaded in the last 24 hours";
+        } else {
+          dot = "bg-sunflower shadow-[0_0_6px_rgba(251,191,36,0.4)]";
+          label = "Widget enabled — not yet installed";
+          desc = "Embed the code snippet below on your website to go live";
+        }
+
+        return (
+          <div className="mt-8 flex items-center justify-between rounded-2xl border border-glass-border bg-white/70 px-6 py-4 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+              <div>
+                <p className="text-[15px] font-medium text-text-primary">{label}</p>
+                <p className="text-[12px] text-text-tertiary">{desc}</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleWidget}
+              disabled={toggling}
+              className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${widgetLive ? "bg-coral" : "bg-text-tertiary/30"} disabled:opacity-50`}
+            >
+              <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200 ${widgetLive ? "translate-x-5" : "translate-x-0.5"}`} />
+            </button>
           </div>
-        </div>
-        <button
-          onClick={toggleWidget}
-          disabled={toggling}
-          className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${widgetLive ? "bg-coral" : "bg-text-tertiary/30"} disabled:opacity-50`}
-        >
-          <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200 ${widgetLive ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
-      </div>
+        );
+      })()}
 
       {/* Embed Code */}
       <div className="mt-10 rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">

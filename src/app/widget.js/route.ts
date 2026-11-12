@@ -89,6 +89,13 @@ export async function GET() {
     'Other': '&#11088;'
   };
 
+  // Ping to confirm widget is installed and loading
+  fetch(origin + '/api/widget/ping', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: apiKey })
+  }).catch(function() {});
+
   fetch(origin + '/api/widget/' + apiKey)
     .then(function(r) { return r.json(); })
     .then(function(offers) {
