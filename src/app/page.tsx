@@ -8,18 +8,18 @@ export default function Home() {
       <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Logo />
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
             <Link
               href="/business/login"
-              className="text-[13px] font-medium text-text-secondary transition-colors hover:text-text-primary"
+              className="rounded-full border border-glass-border bg-white/60 px-5 py-2 text-[13px] font-medium text-text-primary transition-all hover:bg-white hover:shadow-sm active:scale-[0.97]"
             >
-              For Businesses
+              Business Sign In
             </Link>
             <Link
               href="/property/login"
-              className="text-[13px] font-medium text-text-secondary transition-colors hover:text-text-primary"
+              className="rounded-full border border-glass-border bg-white/60 px-5 py-2 text-[13px] font-medium text-text-primary transition-all hover:bg-white hover:shadow-sm active:scale-[0.97]"
             >
-              For Properties
+              Property Sign In
             </Link>
           </div>
         </div>
@@ -36,19 +36,22 @@ export default function Home() {
             future neighbors. Together, they give prospective residents a
             reason to walk the block, not just scroll the listings.
           </p>
-          <div className="mt-10 flex items-center justify-center gap-3">
-            <Link
-              href="/business/signup"
-              className="rounded-full bg-coral px-7 py-3 text-[15px] font-medium text-white shadow-lg shadow-coral/25 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98]"
-            >
-              I own a business
-            </Link>
-            <Link
-              href="/property/signup"
-              className="rounded-full border border-glass-border bg-surface-raised px-7 py-3 text-[15px] font-medium text-text-primary shadow-sm transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
-            >
-              I manage apartments
-            </Link>
+          <div className="mt-10">
+            <p className="mb-3 text-[13px] font-medium uppercase tracking-widest text-text-tertiary">Sign Up</p>
+            <div className="flex items-center justify-center gap-3">
+              <Link
+                href="/business/signup"
+                className="rounded-full bg-coral px-7 py-3 text-[15px] font-medium text-white shadow-lg shadow-coral/25 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98]"
+              >
+                I own a business
+              </Link>
+              <Link
+                href="/property/signup"
+                className="rounded-full border border-glass-border bg-surface-raised px-7 py-3 text-[15px] font-medium text-text-primary shadow-sm transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
+              >
+                I manage apartments
+              </Link>
+            </div>
           </div>
         </div>
         {/* Decorative dots */}
