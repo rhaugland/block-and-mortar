@@ -30,7 +30,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface">
         <div className="mx-auto max-w-3xl px-6 pb-24 pt-28 text-center">
           <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
-            Give apartment website visitors a reason to experience the block.
+            Give prospective residents a reason to walk the block, not just scroll the listings.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
             Local businesses provide the deals. Apartment websites put them
@@ -57,55 +57,8 @@ export default function Home() {
         <div className="absolute bottom-10 left-1/4 h-20 w-20 rounded-full bg-sky/10 blur-2xl" />
       </section>
 
-      {/* How it works — colorful cards */}
-      <section className="bg-surface-raised py-24">
-        <div className="mx-auto max-w-5xl px-6">
-          <h2 className="text-center text-[36px] font-semibold tracking-[-0.02em] text-text-primary">
-            Three steps. That&rsquo;s it.
-          </h2>
-          <div className="mt-16 grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl bg-sky-soft p-7 transition-transform hover:-translate-y-1">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky/15 text-[24px]">
-                &#128187;
-              </div>
-              <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
-                Apartment adds one line of code
-              </h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
-                Copy a script tag into your website. A &ldquo;Neighborhood
-                Perks&rdquo; widget appears for every visitor — no design work needed.
-              </p>
-            </div>
-            <div className="rounded-3xl bg-peach-soft p-7 transition-transform hover:-translate-y-1">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-peach/15 text-[24px]">
-                &#127828;
-              </div>
-              <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
-                Local businesses post deals
-              </h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
-                Set a radius around your store, write an offer, set a budget.
-                You only pay when someone taps &ldquo;Get This Perk.&rdquo;
-              </p>
-            </div>
-            <div className="rounded-3xl bg-mint-soft p-7 transition-transform hover:-translate-y-1">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-mint/15 text-[24px]">
-                &#127968;
-              </div>
-              <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
-                Renters discover the block
-              </h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
-                Someone browsing your apartment sees &ldquo;20% off brunch down
-                the street&rdquo; — and the neighborhood becomes the amenity.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Value props — side by side with colored accents */}
-      <section className="border-t border-glass-border py-24">
+      <section className="py-24">
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-3xl border border-violet/15 bg-violet-soft/50 p-8">
