@@ -28,17 +28,12 @@ export default function Home() {
 
       {/* Hero */}
       <section className="mx-auto max-w-3xl px-6 pb-20 pt-28 text-center">
-        <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-accent">
-          Hyperlocal advertising
-        </p>
-        <h1 className="mt-4 text-[52px] font-semibold leading-[1.05] tracking-[-0.03em] text-text-primary">
-          Your apartment sells the space.
-          <br />
-          <span className="text-text-secondary">We sell the neighborhood.</span>
+        <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
+          Give apartment visitors a reason to love the block.
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
-          When someone browses an apartment online, they see deals from nearby
-          restaurants, gyms, and shops. The neighborhood sells itself.
+          Local businesses provide the deals. Apartment websites put them
+          in front of future neighbors.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3">
           <Link
@@ -59,11 +54,8 @@ export default function Home() {
       {/* How it works — three columns */}
       <section className="border-t border-glass-border bg-surface-raised py-24">
         <div className="mx-auto max-w-5xl px-6">
-          <p className="text-center text-[13px] font-medium uppercase tracking-[0.08em] text-accent">
-            How it works
-          </p>
-          <h2 className="mt-3 text-center text-[36px] font-semibold tracking-[-0.02em] text-text-primary">
-            Three steps. Zero complexity.
+          <h2 className="text-center text-[36px] font-semibold tracking-[-0.02em] text-text-primary">
+            Three steps. That&rsquo;s it.
           </h2>
           <div className="mt-16 grid gap-12 md:grid-cols-3">
             <div>
@@ -111,11 +103,8 @@ export default function Home() {
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid gap-16 md:grid-cols-2">
             <div>
-              <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-accent">
+                <h3 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
                 For apartment communities
-              </p>
-              <h3 className="mt-3 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
-                Turn your neighborhood into a selling point
               </h3>
               <ul className="mt-6 space-y-4">
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
@@ -133,11 +122,8 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-accent">
+                <h3 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
                 For local businesses
-              </p>
-              <h3 className="mt-3 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
-                Reach people before they even move in
               </h3>
               <ul className="mt-6 space-y-4">
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
