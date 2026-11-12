@@ -59,24 +59,35 @@ export default function BusinessSignup() {
   const label = "block text-[13px] font-medium text-text-secondary mb-1.5";
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-surface px-4 py-16">
-      <div className="mb-10">
-        <Logo size="large" />
-      </div>
-      <div className="w-full max-w-[480px]">
-        <h1 className="text-center text-[28px] font-semibold tracking-[-0.02em] text-text-primary">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface px-4 py-12">
+      {/* Decorative blurs */}
+      <div className="absolute -left-4 top-20 h-24 w-24 rounded-full bg-coral/10 blur-2xl" />
+      <div className="absolute -right-8 top-40 h-32 w-32 rounded-full bg-sunflower/15 blur-2xl" />
+
+      <div className="w-full max-w-[520px] rounded-3xl border border-glass-border bg-white/70 p-8 shadow-xl backdrop-blur-xl sm:p-10">
+        {/* Back arrow + Logo */}
+        <div className="mb-8 flex items-center gap-4">
+          <Link
+            href="/"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-glass-border bg-white/60 text-text-tertiary transition-all hover:bg-white hover:text-text-primary hover:shadow-sm"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </Link>
+          <Logo />
+        </div>
+
+        <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text-primary">
           Get in front of new neighbors
         </h1>
-        <p className="mt-2 text-center text-[15px] text-text-secondary">
-          Create offers that appear on apartment websites near you.
-          You only pay when a renter clicks.
+        <p className="mt-1.5 text-[15px] leading-relaxed text-text-secondary">
+          Create offers that appear on apartment websites near you. You only pay when a renter clicks.
         </p>
 
         {error && (
           <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-7 space-y-3.5">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={label}>Business name</label>
@@ -143,7 +154,7 @@ export default function BusinessSignup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-text-primary py-3 text-[15px] font-medium text-white transition-all hover:bg-black active:scale-[0.98] disabled:opacity-50"
+            className="w-full rounded-xl bg-coral py-3 text-[15px] font-medium text-white shadow-lg shadow-coral/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create Account"}
           </button>
@@ -151,7 +162,7 @@ export default function BusinessSignup() {
 
         <p className="mt-6 text-center text-[13px] text-text-tertiary">
           Already have an account?{" "}
-          <Link href="/business/login" className="font-medium text-accent hover:text-accent-hover">
+          <Link href="/business/login" className="font-medium text-coral hover:text-peach">
             Sign in
           </Link>
         </p>
