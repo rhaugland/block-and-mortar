@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen">
       {/* Glass Nav */}
       <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -26,40 +26,46 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-3xl px-6 pb-20 pt-28 text-center">
-        <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
-          Give apartment website visitors a reason to experience the block.
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
-          Local businesses provide the deals. Apartment websites put them
-          in front of future neighbors.
-        </p>
-        <div className="mt-10 flex items-center justify-center gap-3">
-          <Link
-            href="/business/signup"
-            className="rounded-full bg-text-primary px-7 py-3 text-[15px] font-medium text-white transition-all hover:scale-[1.02] hover:bg-black active:scale-[0.98]"
-          >
-            I own a business
-          </Link>
-          <Link
-            href="/property/signup"
-            className="rounded-full border border-glass-border bg-surface-raised px-7 py-3 text-[15px] font-medium text-text-primary shadow-xs transition-all hover:scale-[1.02] hover:bg-white active:scale-[0.98]"
-          >
-            I manage apartments
-          </Link>
+      {/* Hero — warm gradient */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface">
+        <div className="mx-auto max-w-3xl px-6 pb-24 pt-28 text-center">
+          <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
+            Give apartment website visitors a reason to experience the block.
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
+            Local businesses provide the deals. Apartment websites put them
+            in front of future neighbors.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-3">
+            <Link
+              href="/business/signup"
+              className="rounded-full bg-coral px-7 py-3 text-[15px] font-medium text-white shadow-lg shadow-coral/25 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98]"
+            >
+              I own a business
+            </Link>
+            <Link
+              href="/property/signup"
+              className="rounded-full border border-glass-border bg-surface-raised px-7 py-3 text-[15px] font-medium text-text-primary shadow-sm transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
+            >
+              I manage apartments
+            </Link>
+          </div>
         </div>
+        {/* Decorative dots */}
+        <div className="absolute -left-4 top-20 h-24 w-24 rounded-full bg-coral/10 blur-2xl" />
+        <div className="absolute -right-8 top-40 h-32 w-32 rounded-full bg-sunflower/15 blur-2xl" />
+        <div className="absolute bottom-10 left-1/4 h-20 w-20 rounded-full bg-sky/10 blur-2xl" />
       </section>
 
-      {/* How it works — three columns */}
-      <section className="border-t border-glass-border bg-surface-raised py-24">
+      {/* How it works — colorful cards */}
+      <section className="bg-surface-raised py-24">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-center text-[36px] font-semibold tracking-[-0.02em] text-text-primary">
             Three steps. That&rsquo;s it.
           </h2>
-          <div className="mt-16 grid gap-12 md:grid-cols-3">
-            <div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-subtle text-[20px]">
+          <div className="mt-16 grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl bg-sky-soft p-7 transition-transform hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky/15 text-[24px]">
                 &#128187;
               </div>
               <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
@@ -70,8 +76,8 @@ export default function Home() {
                 Perks&rdquo; widget appears for every visitor — no design work needed.
               </p>
             </div>
-            <div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-subtle text-[20px]">
+            <div className="rounded-3xl bg-peach-soft p-7 transition-transform hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-peach/15 text-[24px]">
                 &#127828;
               </div>
               <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
@@ -82,8 +88,8 @@ export default function Home() {
                 You only pay when someone taps &ldquo;Get This Perk.&rdquo;
               </p>
             </div>
-            <div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-subtle text-[20px]">
+            <div className="rounded-3xl bg-mint-soft p-7 transition-transform hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-mint/15 text-[24px]">
                 &#127968;
               </div>
               <h3 className="mt-5 text-[17px] font-semibold text-text-primary">
@@ -91,51 +97,51 @@ export default function Home() {
               </h3>
               <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
                 Someone browsing your apartment sees &ldquo;20% off brunch down
-                the street&rdquo; — and suddenly the neighborhood is the amenity.
+                the street&rdquo; — and the neighborhood becomes the amenity.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Value props */}
+      {/* Value props — side by side with colored accents */}
       <section className="border-t border-glass-border py-24">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="grid gap-16 md:grid-cols-2">
-            <div>
-                <h3 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="rounded-3xl border border-violet/15 bg-violet-soft/50 p-8">
+              <h3 className="text-[24px] font-semibold tracking-[-0.02em] text-text-primary">
                 For apartment communities
               </h3>
               <ul className="mt-6 space-y-4">
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
                   Widget installs in 30 seconds — one script tag
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
                   Earn 25% of every click as passive revenue
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
                   Give renters a reason to choose your location
                 </li>
               </ul>
             </div>
-            <div>
-                <h3 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text-primary">
+            <div className="rounded-3xl border border-coral/15 bg-coral-soft/50 p-8">
+              <h3 className="text-[24px] font-semibold tracking-[-0.02em] text-text-primary">
                 For local businesses
               </h3>
               <ul className="mt-6 space-y-4">
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-coral/15 text-[11px] text-coral">&#10003;</span>
                   Target renters within walking distance of your store
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-coral/15 text-[11px] text-coral">&#10003;</span>
                   Pay per click — not per impression. Start at $0.50
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-accent">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-coral/15 text-[11px] text-coral">&#10003;</span>
                   Your first customers before they unpack the boxes
                 </li>
               </ul>
@@ -144,20 +150,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-glass-border bg-surface-raised py-24 text-center">
+      {/* CTA — gradient banner */}
+      <section className="mx-6 mb-12 overflow-hidden rounded-3xl bg-gradient-to-r from-coral via-peach to-sunflower py-20 text-center">
         <div className="mx-auto max-w-2xl px-6">
-          <h2 className="text-[36px] font-semibold tracking-[-0.02em] text-text-primary">
+          <h2 className="text-[36px] font-semibold tracking-[-0.02em] text-white">
             Ready to own your block?
           </h2>
-          <p className="mt-3 text-[17px] text-text-secondary">
-            Join the apartment communities and local businesses already using
-            Block &amp; Mortar.
+          <p className="mt-3 text-[17px] text-white/80">
+            Join the apartment communities and local businesses already
+            bringing neighborhoods to life.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <Link
               href="/business/signup"
-              className="rounded-full bg-text-primary px-7 py-3 text-[15px] font-medium text-white transition-all hover:scale-[1.02] hover:bg-black active:scale-[0.98]"
+              className="rounded-full bg-white px-7 py-3 text-[15px] font-semibold text-coral shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
             >
               Get started free
             </Link>

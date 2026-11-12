@@ -11,6 +11,20 @@
   --color-text-primary: #1d1d1f;
   --color-text-secondary: #6e6e73;
   --color-text-tertiary: #a1a1a6;
+
+  /* Block party palette */
+  --color-coral: #ff6b5b;
+  --color-coral-soft: #fff0ee;
+  --color-sunflower: #fbbf24;
+  --color-sunflower-soft: #fef9e7;
+  --color-sky: #38bdf8;
+  --color-sky-soft: #ecf8ff;
+  --color-mint: #34d399;
+  --color-mint-soft: #ecfdf5;
+  --color-violet: #a78bfa;
+  --color-violet-soft: #f3f0ff;
+  --color-peach: #fb923c;
+  --color-peach-soft: #fff7ed;
 }
 
 html {
@@ -24,6 +38,6 @@ body {
 }
 
 ::selection {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-sunflower-soft);
+  color: var(--color-coral);
 }
