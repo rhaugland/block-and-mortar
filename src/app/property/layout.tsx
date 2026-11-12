@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Logo } from "@/components/logo";
+import { SupportWidget } from "@/components/support-widget";
 
 export default function PropertyLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function PropertyLayout({ children }: { children: React.ReactNode
         </div>
       </nav>
       {children}
+      <SupportWidget />
     </div>
   );
 }
