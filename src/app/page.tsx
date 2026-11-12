@@ -61,21 +61,21 @@ export default function Home() {
       <section className="py-24">
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-3xl border border-violet/15 bg-violet-soft/50 p-8">
+            <div className="rounded-3xl border border-sunflower/20 bg-sunflower-soft/50 p-8">
               <h3 className="text-[24px] font-semibold tracking-[-0.02em] text-text-primary">
                 For apartment communities
               </h3>
               <ul className="mt-6 space-y-4">
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sunflower/20 text-[11px] text-peach">&#10003;</span>
                   Widget installs in 30 seconds — one script tag
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sunflower/20 text-[11px] text-peach">&#10003;</span>
                   Earn 25% of every click as passive revenue
                 </li>
                 <li className="flex gap-3 text-[15px] leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet/15 text-[11px] text-violet">&#10003;</span>
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sunflower/20 text-[11px] text-peach">&#10003;</span>
                   Give renters a reason to choose your location
                 </li>
               </ul>
