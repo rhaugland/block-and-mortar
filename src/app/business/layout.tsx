@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { Logo } from "@/components/logo";
 
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -20,9 +21,7 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
     <div className="min-h-screen bg-surface">
       <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/business/dashboard" className="text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
-            Block &amp; Mortar
-          </Link>
+          <Logo href="/business/dashboard" />
           <div className="flex items-center gap-5">
             <Link
               href="/business/dashboard"

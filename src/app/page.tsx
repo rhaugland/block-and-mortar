@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 export default function Home() {
   return (
@@ -6,9 +7,7 @@ export default function Home() {
       {/* Glass Nav */}
       <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
-            Block &amp; Mortar
-          </span>
+          <Logo />
           <div className="flex items-center gap-6">
             <Link
               href="/business/login"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/logo";
 
 interface Stats {
   totalProperties: number;
@@ -53,11 +54,9 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-surface">
       <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center px-6 py-4">
-          <span className="text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
-            Block &amp; Mortar
-            <span className="ml-2 text-[13px] font-normal text-text-tertiary">Admin</span>
-          </span>
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
+          <Logo href="/admin" />
+          <span className="text-[13px] font-medium text-text-tertiary">Admin</span>
         </div>
       </nav>
 

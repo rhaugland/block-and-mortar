@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 export default function PropertyLogin() {
   const router = useRouter();
@@ -35,9 +36,9 @@ export default function PropertyLogin() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-4">
-      <Link href="/" className="mb-10 text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
-        Block &amp; Mortar
-      </Link>
+      <div className="mb-10">
+        <Logo size="large" />
+      </div>
       <div className="w-full max-w-[380px]">
         <h1 className="text-center text-[28px] font-semibold tracking-[-0.02em] text-text-primary">
           Property sign-in
