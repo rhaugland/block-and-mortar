@@ -31,8 +31,27 @@ model Property {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  locations   Location[]
   impressions Impression[]
   clicks      Click[]
+}
+
+// ─── Location (individual apartment community) ──────────────────────
+
+model Location {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String
+  address    String
+  city       String
+  state      String
+  zip        String
+  lat        Float
+  lng        Float
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
 }
 
 // ─── Business ───────────────────────────────────────────────────────

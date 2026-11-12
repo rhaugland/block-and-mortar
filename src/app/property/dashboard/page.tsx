@@ -28,6 +28,9 @@ export default function PropertyDashboard() {
   const [widgetOpen, setWidgetOpen] = useState(true);
   const [widgetLive, setWidgetLive] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [locations, setLocations] = useState<{ id: string; name: string; address: string; city: string; state: string; zip: string }[]>([]);
+  const [showAddLocation, setShowAddLocation] = useState(false);
+  const [addingLocation, setAddingLocation] = useState(false);
   const [siteUrl, setSiteUrl] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [styleTokens, setStyleTokens] = useState<{ primaryColor: string; accentColor: string; fontFamily: string; borderRadius: string } | null>(null);
@@ -42,6 +45,10 @@ export default function PropertyDashboard() {
       .then((d) => { setData(d); setWidgetLive(d.property.widgetEnabled); if (d.property.widgetStyle) setStyleTokens(d.property.widgetStyle); })
       .catch(() => {})
       .finally(() => setLoading(false));
+    fetch("/api/property/locations")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setLocations(d.locations); })
+      .catch(() => {});
   }, []);
 
   const toggleWidget = async () => {
@@ -58,6 +65,45 @@ export default function PropertyDashboard() {
       }
     } catch { /* ignore */ }
     setToggling(false);
+  };
+
+  const addLocation = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setAddingLocation(true);
+    const fd = new FormData(e.currentTarget);
+    try {
+      const res = await fetch("/api/property/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fd.get("locName"),
+          address: fd.get("locAddress"),
+          city: fd.get("locCity"),
+          state: fd.get("locState"),
+          zip: fd.get("locZip"),
+        }),
+      });
+      if (res.ok) {
+        const { location } = await res.json();
+        setLocations((prev) => [...prev, location]);
+        setShowAddLocation(false);
+        (e.target as HTMLFormElement).reset();
+      }
+    } catch { /* ignore */ }
+    setAddingLocation(false);
+  };
+
+  const removeLocation = async (id: string) => {
+    try {
+      const res = await fetch("/api/property/locations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setLocations((prev) => prev.filter((l) => l.id !== id));
+      }
+    } catch { /* ignore */ }
   };
 
   const analyzeSite = async () => {
@@ -135,6 +181,79 @@ export default function PropertyDashboard() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Locations */}
+      <div className="mt-10 rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[17px] font-semibold text-text-primary">Your locations</h2>
+            <p className="mt-0.5 text-[13px] text-text-secondary">
+              The widget shows offers near all of your locations. One embed code covers them all.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddLocation(!showAddLocation)}
+            className="rounded-full bg-coral px-4 py-2 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {showAddLocation ? "Cancel" : "+ Add location"}
+          </button>
+        </div>
+
+        {/* Location list */}
+        <div className="mt-5 space-y-2">
+          {locations.map((loc) => (
+            <div key={loc.id} className="flex items-center justify-between rounded-xl border border-glass-border bg-white/60 px-4 py-3">
+              <div>
+                <p className="text-[14px] font-medium text-text-primary">{loc.name}</p>
+                <p className="text-[12px] text-text-tertiary">{loc.address}, {loc.city}, {loc.state} {loc.zip}</p>
+              </div>
+              {locations.length > 1 && (
+                <button
+                  onClick={() => removeLocation(loc.id)}
+                  className="text-[12px] text-text-tertiary hover:text-red-500 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add location form */}
+        {showAddLocation && (
+          <form onSubmit={addLocation} className="mt-4 rounded-xl border border-sunflower/20 bg-sunflower-soft/30 p-4 space-y-3">
+            <div>
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">Location name</label>
+              <input name="locName" required placeholder="e.g. The Lofts at Maple Grove" className="w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2 text-[13px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+            </div>
+            <div>
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">Street address</label>
+              <input name="locAddress" required className="w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2 text-[13px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+            </div>
+            <div className="grid grid-cols-[1fr_70px_90px] gap-2">
+              <div>
+                <label className="block text-[12px] font-medium text-text-secondary mb-1">City</label>
+                <input name="locCity" required className="w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-text-secondary mb-1">State</label>
+                <input name="locState" required maxLength={2} placeholder="MN" className="w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-text-secondary mb-1">ZIP</label>
+                <input name="locZip" required className="w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={addingLocation}
+              className="rounded-lg bg-coral px-4 py-2 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            >
+              {addingLocation ? "Adding..." : "Add location"}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Widget Status */}

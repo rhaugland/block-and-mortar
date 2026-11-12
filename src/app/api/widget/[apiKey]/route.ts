@@ -18,7 +18,10 @@ export async function GET(
 ) {
   try {
     const { apiKey } = await params;
-    const property = await prisma.property.findUnique({ where: { apiKey } });
+    const property = await prisma.property.findUnique({
+      where: { apiKey },
+      include: { locations: { select: { lat: true, lng: true } } },
+    });
     if (!property) {
       return NextResponse.json(
         { error: "Property not found" },
@@ -29,6 +32,11 @@ export async function GET(
     if (!property.widgetEnabled) {
       return NextResponse.json({ offers: [], style: null }, { headers: corsHeaders });
     }
+
+    // Use all locations (fall back to property's own lat/lng if no locations)
+    const coords = property.locations.length > 0
+      ? property.locations
+      : [{ lat: property.lat, lng: property.lng }];
 
     const now = new Date();
     const offers = await prisma.offer.findMany({
@@ -51,16 +59,13 @@ export async function GET(
       },
     });
 
-    // Filter by radius and budget
+    // Filter by radius and budget — match if near ANY location
     const nearby = offers.filter((offer) => {
       if (offer.spentCents >= offer.budgetCents) return false;
-      const dist = distanceMiles(
-        property.lat,
-        property.lng,
-        offer.business.lat,
-        offer.business.lng
-      );
-      return dist <= offer.radiusMiles;
+      return coords.some((loc) => {
+        const dist = distanceMiles(loc.lat, loc.lng, offer.business.lat, offer.business.lng);
+        return dist <= offer.radiusMiles;
+      });
     });
 
     // Record impressions

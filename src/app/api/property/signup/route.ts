@@ -35,6 +35,17 @@ export async function POST(req: NextRequest) {
         password: hashed,
         contactName: contactName || null,
         websiteUrl: websiteUrl || null,
+        locations: {
+          create: {
+            name,
+            address,
+            city,
+            state,
+            zip,
+            lat: geo.lat,
+            lng: geo.lng,
+          },
+        },
       },
     });
 
