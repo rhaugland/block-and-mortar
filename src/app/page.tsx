@@ -31,9 +31,10 @@ export default function Home() {
           <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
             Give prospective residents a reason to <span className="bg-gradient-to-r from-coral to-peach bg-clip-text text-transparent">walk the block</span>, not just scroll the listings.
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
-            Local businesses provide the deals. Apartment websites put them
-            in front of future neighbors.
+          <p className="mx-auto mt-6 max-w-2xl text-[19px] leading-relaxed text-text-secondary">
+            Local businesses bring the offers. Apartment websites bring the
+            future neighbors. Together, they give prospective residents a
+            reason to walk the block, not just scroll the listings.
           </p>
           <div className="mt-10 flex items-center justify-center gap-3">
             <Link
