@@ -30,7 +30,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface">
         <div className="mx-auto max-w-3xl px-6 pb-24 pt-28 text-center">
           <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
-            Give prospective residents a reason to walk the block, not just scroll the listings.
+            Give prospective residents a reason to <span className="bg-gradient-to-r from-coral to-peach bg-clip-text text-transparent">walk the block</span>, not just scroll the listings.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
             Local businesses provide the deals. Apartment websites put them
