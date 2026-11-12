@@ -26,6 +26,10 @@ export async function GET(
       );
     }
 
+    if (!property.widgetEnabled) {
+      return NextResponse.json([], { headers: corsHeaders });
+    }
+
     const now = new Date();
     const offers = await prisma.offer.findMany({
       where: {

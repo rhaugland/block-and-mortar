@@ -10,6 +10,7 @@ interface DashboardData {
     state: string;
     zip: string;
     apiKey: string;
+    widgetEnabled: boolean;
   };
   stats: {
     totalImpressions: number;
@@ -23,6 +24,8 @@ export default function PropertyDashboard() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [widgetOpen, setWidgetOpen] = useState(true);
+  const [widgetLive, setWidgetLive] = useState(true);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     fetch("/api/property/dashboard")
@@ -30,10 +33,26 @@ export default function PropertyDashboard() {
         if (!r.ok) { window.location.href = "/property/login"; throw new Error("Unauthorized"); }
         return r.json();
       })
-      .then(setData)
+      .then((d) => { setData(d); setWidgetLive(d.property.widgetEnabled); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleWidget = async () => {
+    setToggling(true);
+    try {
+      const res = await fetch("/api/property/widget-toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !widgetLive }),
+      });
+      if (res.ok) {
+        const { widgetEnabled } = await res.json();
+        setWidgetLive(widgetEnabled);
+      }
+    } catch { /* ignore */ }
+    setToggling(false);
+  };
 
   if (loading || !data) {
     return (
@@ -77,6 +96,28 @@ export default function PropertyDashboard() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Widget Status */}
+      <div className="mt-8 flex items-center justify-between rounded-2xl border border-glass-border bg-white/70 px-6 py-4 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className={`h-2.5 w-2.5 rounded-full ${widgetLive ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.4)]" : "bg-text-tertiary"}`} />
+          <div>
+            <p className="text-[15px] font-medium text-text-primary">
+              Widget is {widgetLive ? "live" : "off"}
+            </p>
+            <p className="text-[12px] text-text-tertiary">
+              {widgetLive ? "Visitors can see neighborhood perks on your site" : "The widget is hidden from your website visitors"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={toggleWidget}
+          disabled={toggling}
+          className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${widgetLive ? "bg-coral" : "bg-text-tertiary/30"} disabled:opacity-50`}
+        >
+          <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200 ${widgetLive ? "translate-x-5" : "translate-x-0.5"}`} />
+        </button>
       </div>
 
       {/* Embed Code */}

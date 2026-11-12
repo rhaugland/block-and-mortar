@@ -23,8 +23,9 @@ model Property {
   contactName String?
   email       String   @unique
   password    String
-  apiKey      String   @unique @default(cuid())
-  revSharePct Float    @default(0.25)
+  apiKey        String   @unique @default(cuid())
+  widgetEnabled Boolean  @default(true)
+  revSharePct   Float    @default(0.25)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
