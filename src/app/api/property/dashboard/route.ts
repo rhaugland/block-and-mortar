@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         apiKey: true,
         widgetEnabled: true,
         widgetLastPing: true,
+        widgetStyle: true,
         revSharePct: true,
       },
     });

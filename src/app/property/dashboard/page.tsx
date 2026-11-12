@@ -12,6 +12,7 @@ interface DashboardData {
     apiKey: string;
     widgetEnabled: boolean;
     widgetLastPing: string | null;
+    widgetStyle: { primaryColor: string; accentColor: string; fontFamily: string; borderRadius: string } | null;
   };
   stats: {
     totalImpressions: number;
@@ -27,6 +28,10 @@ export default function PropertyDashboard() {
   const [widgetOpen, setWidgetOpen] = useState(true);
   const [widgetLive, setWidgetLive] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [siteUrl, setSiteUrl] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [styleTokens, setStyleTokens] = useState<{ primaryColor: string; accentColor: string; fontFamily: string; borderRadius: string } | null>(null);
+  const [styleSaved, setStyleSaved] = useState(false);
 
   useEffect(() => {
     fetch("/api/property/dashboard")
@@ -34,7 +39,7 @@ export default function PropertyDashboard() {
         if (!r.ok) { window.location.href = "/property/login"; throw new Error("Unauthorized"); }
         return r.json();
       })
-      .then((d) => { setData(d); setWidgetLive(d.property.widgetEnabled); })
+      .then((d) => { setData(d); setWidgetLive(d.property.widgetEnabled); if (d.property.widgetStyle) setStyleTokens(d.property.widgetStyle); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -53,6 +58,39 @@ export default function PropertyDashboard() {
       }
     } catch { /* ignore */ }
     setToggling(false);
+  };
+
+  const analyzeSite = async () => {
+    if (!siteUrl) return;
+    setAnalyzing(true);
+    setStyleSaved(false);
+    try {
+      const res = await fetch("/api/property/analyze-site", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: siteUrl }),
+      });
+      if (res.ok) {
+        const { tokens } = await res.json();
+        setStyleTokens(tokens);
+      }
+    } catch { /* ignore */ }
+    setAnalyzing(false);
+  };
+
+  const saveStyle = async () => {
+    if (!styleTokens) return;
+    try {
+      const res = await fetch("/api/property/widget-style", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(styleTokens),
+      });
+      if (res.ok) {
+        setStyleSaved(true);
+        setTimeout(() => setStyleSaved(false), 2000);
+      }
+    } catch { /* ignore */ }
   };
 
   if (loading || !data) {
@@ -164,6 +202,67 @@ export default function PropertyDashboard() {
         </button>
       </div>
 
+      {/* Style Customization */}
+      <div className="mt-10 rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
+        <h2 className="text-[17px] font-semibold text-text-primary">
+          Match your website&apos;s style
+        </h2>
+        <p className="mt-1 text-[13px] text-text-secondary">
+          Paste your website URL and we&apos;ll analyze its design to customize the widget colors, fonts, and shape.
+        </p>
+
+        <div className="mt-4 flex gap-3">
+          <input
+            value={siteUrl}
+            onChange={(e) => setSiteUrl(e.target.value)}
+            placeholder="https://your-apartment-site.com"
+            className="flex-1 rounded-xl border border-glass-border bg-white/80 px-4 py-2.5 text-[14px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral"
+          />
+          <button
+            onClick={analyzeSite}
+            disabled={analyzing || !siteUrl}
+            className="rounded-xl bg-coral px-5 py-2.5 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          >
+            {analyzing ? "Analyzing..." : "Analyze"}
+          </button>
+        </div>
+
+        {styleTokens && (
+          <div className="mt-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-glass-border bg-white/60 p-3">
+                <p className="text-[11px] font-medium text-text-tertiary mb-2">Primary</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg shadow-sm border border-glass-border" style={{ background: styleTokens.primaryColor }} />
+                  <span className="text-[12px] text-text-secondary font-mono">{styleTokens.primaryColor}</span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-glass-border bg-white/60 p-3">
+                <p className="text-[11px] font-medium text-text-tertiary mb-2">Accent</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg shadow-sm border border-glass-border" style={{ background: styleTokens.accentColor }} />
+                  <span className="text-[12px] text-text-secondary font-mono">{styleTokens.accentColor}</span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-glass-border bg-white/60 p-3">
+                <p className="text-[11px] font-medium text-text-tertiary mb-2">Font</p>
+                <p className="text-[13px] text-text-primary font-medium truncate" style={{ fontFamily: styleTokens.fontFamily }}>{styleTokens.fontFamily}</p>
+              </div>
+              <div className="rounded-xl border border-glass-border bg-white/60 p-3">
+                <p className="text-[11px] font-medium text-text-tertiary mb-2">Corners</p>
+                <p className="text-[13px] text-text-primary font-medium">{styleTokens.borderRadius}</p>
+              </div>
+            </div>
+            <button
+              onClick={saveStyle}
+              className="mt-4 rounded-xl bg-coral px-5 py-2.5 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {styleSaved ? "Saved!" : "Apply to widget"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Widget Preview */}
       <div className="mt-10 rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
         <h2 className="text-[17px] font-semibold text-text-primary">Preview</h2>
@@ -182,20 +281,20 @@ export default function PropertyDashboard() {
           <div className="mt-2 h-2 w-56 rounded bg-white/40" />
           <div className="mt-3 h-2 w-40 rounded bg-white/35" />
 
-          {/* Interactive widget */}
+          {/* Interactive widget — uses custom colors if set */}
           <div className="absolute bottom-4 right-4">
             {widgetOpen ? (
-              <div className="w-[260px] rounded-2xl bg-white shadow-xl border border-glass-border overflow-hidden animate-in">
-                <div className="bg-gradient-to-r from-coral to-peach px-4 py-3 flex items-center justify-between">
-                  <span className="text-[13px] font-semibold text-white">A reason to walk the block</span>
+              <div className="w-[260px] bg-white shadow-xl border border-glass-border overflow-hidden" style={{ borderRadius: styleTokens?.borderRadius || "16px" }}>
+                <div className="px-4 py-3 flex items-center justify-between" style={{ background: `linear-gradient(135deg, ${styleTokens?.primaryColor || "#ff6b5b"}, ${styleTokens?.accentColor || "#fb923c"})` }}>
+                  <span className="text-[13px] font-semibold text-white" style={{ fontFamily: styleTokens?.fontFamily }}>A reason to walk the block</span>
                   <button onClick={() => setWidgetOpen(false)} className="text-white/70 text-[15px] hover:text-white transition-colors cursor-pointer leading-none">&#8722;</button>
                 </div>
-                <div className="p-3 space-y-2">
-                  <div className="rounded-xl border border-glass-border p-3">
+                <div className="p-3 space-y-2" style={{ fontFamily: styleTokens?.fontFamily }}>
+                  <div className="border border-glass-border p-3" style={{ borderRadius: `max(${parseInt(styleTokens?.borderRadius || "16") - 4}px, 6px)` }}>
                     <p className="text-[12px] font-semibold text-text-primary">20% off your first meal</p>
                     <p className="text-[11px] text-text-secondary mt-0.5">Corner Bistro &middot; Restaurant</p>
                   </div>
-                  <div className="rounded-xl border border-glass-border p-3">
+                  <div className="border border-glass-border p-3" style={{ borderRadius: `max(${parseInt(styleTokens?.borderRadius || "16") - 4}px, 6px)` }}>
                     <p className="text-[12px] font-semibold text-text-primary">Free week trial</p>
                     <p className="text-[11px] text-text-secondary mt-0.5">FitBlock Gym &middot; Fitness</p>
                   </div>
@@ -205,7 +304,8 @@ export default function PropertyDashboard() {
             ) : (
               <button
                 onClick={() => setWidgetOpen(true)}
-                className="rounded-full bg-gradient-to-r from-coral to-peach px-4 py-2.5 text-[12px] font-semibold text-white shadow-lg shadow-coral/25 transition-transform hover:scale-105 cursor-pointer"
+                className="rounded-full px-4 py-2.5 text-[12px] font-semibold text-white shadow-lg transition-transform hover:scale-105 cursor-pointer"
+                style={{ background: `linear-gradient(135deg, ${styleTokens?.primaryColor || "#ff6b5b"}, ${styleTokens?.accentColor || "#fb923c"})` }}
               >
                 A reason to walk the block
               </button>

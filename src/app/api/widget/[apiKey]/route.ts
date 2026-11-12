@@ -27,7 +27,7 @@ export async function GET(
     }
 
     if (!property.widgetEnabled) {
-      return NextResponse.json([], { headers: corsHeaders });
+      return NextResponse.json({ offers: [], style: null }, { headers: corsHeaders });
     }
 
     const now = new Date();
@@ -85,7 +85,9 @@ export async function GET(
       businessLogoUrl: offer.business.logoUrl,
     }));
 
-    return NextResponse.json(result, { headers: corsHeaders });
+    const style = property.widgetStyle as Record<string, string> | null;
+
+    return NextResponse.json({ offers: result, style }, { headers: corsHeaders });
   } catch (err) {
     console.error("Widget GET error:", err);
     return NextResponse.json(
