@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+import { geocodeAddress } from "@/lib/geocode";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
       .replace(/\s+/g, "-");
 
     const hashed = await bcrypt.hash(password, 10);
+    const geo = await geocodeAddress(address, city, state, zip);
 
     const property = await prisma.property.create({
       data: {
@@ -27,8 +29,8 @@ export async function POST(req: NextRequest) {
         city,
         state,
         zip,
-        lat: lat || 0,
-        lng: lng || 0,
+        lat: geo.lat,
+        lng: geo.lng,
         email,
         password: hashed,
         contactName: contactName || null,
