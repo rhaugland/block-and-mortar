@@ -51,7 +51,7 @@ export default function BusinessLogin() {
         </div>
 
         <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text-primary">
-          Welcome back
+          Business sign in
         </h1>
         <p className="mt-1.5 text-[15px] text-text-secondary">
           Sign in to manage your offers and track performance.
