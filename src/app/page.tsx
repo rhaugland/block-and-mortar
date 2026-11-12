@@ -27,7 +27,7 @@ export default function Home() {
 
       {/* Hero — warm gradient */}
       <section className="relative overflow-hidden bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface">
-        <div className="mx-auto max-w-3xl px-6 pb-24 pt-28 text-center">
+        <div className="mx-auto max-w-3xl px-6 pb-16 pt-24 text-center">
           <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
             Give prospective residents a reason to <span className="bg-gradient-to-r from-coral to-peach bg-clip-text text-transparent">walk the block</span>, not just scroll the listings.
           </h1>
@@ -58,7 +58,7 @@ export default function Home() {
       </section>
 
       {/* Value props — side by side with colored accents */}
-      <section className="py-24">
+      <section className="py-14">
         <div className="mx-auto max-w-5xl px-6">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-3xl border border-sunflower/20 bg-sunflower-soft/50 p-8">
@@ -99,27 +99,6 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA — gradient banner */}
-      <section className="mx-6 mb-12 overflow-hidden rounded-3xl bg-gradient-to-r from-coral via-peach to-sunflower py-20 text-center">
-        <div className="mx-auto max-w-2xl px-6">
-          <h2 className="text-[36px] font-semibold tracking-[-0.02em] text-white">
-            Ready to own your block?
-          </h2>
-          <p className="mt-3 text-[17px] text-white/80">
-            Join the apartment communities and local businesses already
-            bringing neighborhoods to life.
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <Link
-              href="/business/signup"
-              className="rounded-full bg-white px-7 py-3 text-[15px] font-semibold text-coral shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
-            >
-              Get started free
-            </Link>
           </div>
         </div>
       </section>
