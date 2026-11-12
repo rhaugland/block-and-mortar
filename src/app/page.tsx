@@ -29,7 +29,7 @@ export default function Home() {
       {/* Hero */}
       <section className="mx-auto max-w-3xl px-6 pb-20 pt-28 text-center">
         <h1 className="text-[52px] font-semibold leading-[1.08] tracking-[-0.03em] text-text-primary">
-          Give apartment visitors a reason to love the block.
+          Give apartment website visitors a reason to experience the block.
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-[19px] leading-relaxed text-text-secondary">
           Local businesses provide the deals. Apartment websites put them
