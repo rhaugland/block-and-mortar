@@ -116,24 +116,33 @@ export default function PropertyDashboard() {
           <div className="mt-3 h-2 w-64 rounded bg-white/40" />
           <div className="mt-2 h-2 w-56 rounded bg-white/40" />
 
-          {/* Widget mockup */}
+          {/* Widget mockup — expanded */}
           <div className="absolute bottom-4 right-4 w-[260px]">
-            <div className="rounded-2xl bg-white/90 shadow-xl border border-glass-border overflow-hidden backdrop-blur-sm">
+            <div className="rounded-2xl bg-white shadow-xl border border-glass-border overflow-hidden">
               <div className="bg-gradient-to-r from-coral to-peach px-4 py-3 flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-white">&#127968; Neighborhood Perks</span>
-                <span className="text-white/60 text-[12px]">&times;</span>
+                <span className="text-[13px] font-semibold text-white">A reason to walk the block</span>
+                <span className="text-white/60 text-[13px]">&#8722;</span>
               </div>
               <div className="p-3 space-y-2">
-                <div className="rounded-xl bg-sunflower-soft/50 p-3">
+                <div className="rounded-xl border border-glass-border p-3 transition-shadow hover:shadow-sm">
                   <p className="text-[12px] font-semibold text-text-primary">20% off your first meal</p>
                   <p className="text-[11px] text-text-secondary mt-0.5">Corner Bistro &middot; Restaurant</p>
                 </div>
-                <div className="rounded-xl bg-coral-soft/40 p-3">
+                <div className="rounded-xl border border-glass-border p-3 transition-shadow hover:shadow-sm">
                   <p className="text-[12px] font-semibold text-text-primary">Free week trial</p>
                   <p className="text-[11px] text-text-secondary mt-0.5">FitBlock Gym &middot; Fitness</p>
                 </div>
               </div>
+              <div className="border-t border-glass-border py-2 text-center text-[10px] text-text-tertiary">Powered by Block &amp; Mortar</div>
             </div>
+          </div>
+
+          {/* Widget mockup — minimized tab */}
+          <div className="absolute bottom-4 left-8">
+            <div className="rounded-full bg-gradient-to-r from-coral to-peach px-4 py-2.5 text-[12px] font-semibold text-white shadow-lg shadow-coral/25">
+              A reason to walk the block
+            </div>
+            <p className="mt-2 text-center text-[10px] text-text-tertiary">&#8593; Minimized view</p>
           </div>
         </div>
       </div>

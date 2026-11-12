@@ -18,15 +18,17 @@ export async function GET() {
   style.textContent = \`
     * { box-sizing: border-box; margin: 0; padding: 0; }
     .bm-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .bm-tab { display: flex; align-items: center; gap: 6px; cursor: pointer; background: #d97706; color: #fff; border: none; padding: 10px 16px; border-radius: 24px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s; }
+    .bm-tab { display: flex; align-items: center; gap: 6px; cursor: pointer; background: linear-gradient(135deg, #ff6b5b, #fb923c); color: #fff; border: none; padding: 10px 16px; border-radius: 24px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(255,107,91,0.3); transition: transform 0.2s; }
     .bm-tab:hover { transform: scale(1.05); }
-    .bm-panel { display: none; width: 320px; max-height: 440px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 8px; }
+    .bm-panel { display: none; width: 320px; max-height: 440px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 8px; }
     .bm-panel.open { display: block; }
-    .bm-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #fde68a; }
-    .bm-header-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #92400e; }
-    .bm-close { cursor: pointer; background: none; border: none; font-size: 18px; color: #92400e; padding: 4px; }
+    .bm-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg, #ff6b5b, #fb923c); }
+    .bm-header-title { font-size: 14px; font-weight: 700; color: #fff; }
+    .bm-minimize { cursor: pointer; background: none; border: none; font-size: 16px; color: rgba(255,255,255,0.7); padding: 4px; transition: color 0.15s; }
+    .bm-minimize:hover { color: #fff; }
     .bm-list { overflow-y: auto; max-height: 340px; padding: 8px; }
-    .bm-offer { background: #fff; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+    .bm-offer { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; }
+    .bm-offer:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .bm-offer:last-child { margin-bottom: 0; }
     .bm-biz { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .bm-logo { width: 32px; height: 32px; border-radius: 6px; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 16px; overflow: hidden; }
@@ -35,9 +37,9 @@ export async function GET() {
     .bm-biz-cat { font-size: 11px; color: #a8a29e; }
     .bm-title { font-size: 14px; font-weight: 600; color: #1c1917; margin-bottom: 4px; }
     .bm-desc { font-size: 12px; color: #57534e; line-height: 1.4; margin-bottom: 8px; }
-    .bm-btn { display: inline-block; cursor: pointer; background: #d97706; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; }
-    .bm-btn:hover { background: #b45309; }
-    .bm-footer { text-align: center; padding: 8px; font-size: 10px; color: #a8a29e; border-top: 1px solid #fde68a; }
+    .bm-btn { display: inline-block; cursor: pointer; background: linear-gradient(135deg, #ff6b5b, #fb923c); color: #fff; border: none; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
+    .bm-btn:hover { transform: scale(1.03); box-shadow: 0 2px 8px rgba(255,107,91,0.3); }
+    .bm-footer { text-align: center; padding: 8px; font-size: 10px; color: #a8a29e; border-top: 1px solid rgba(0,0,0,0.06); }
     .bm-empty { text-align: center; padding: 24px 16px; color: #78716c; font-size: 13px; }
   \`;
   shadow.appendChild(style);
@@ -47,30 +49,30 @@ export async function GET() {
   wrap.innerHTML = \`
     <div class="bm-panel" id="bm-panel">
       <div class="bm-header">
-        <div class="bm-header-title">&#127968; Neighborhood Perks</div>
-        <button class="bm-close" id="bm-close">&times;</button>
+        <div class="bm-header-title">A reason to walk the block</div>
+        <button class="bm-minimize" id="bm-minimize">&#8722;</button>
       </div>
       <div class="bm-list" id="bm-list">
         <div class="bm-empty">Loading perks...</div>
       </div>
       <div class="bm-footer">Powered by Block & Mortar</div>
     </div>
-    <button class="bm-tab" id="bm-tab">&#127968; Neighborhood Perks</button>
+    <button class="bm-tab" id="bm-tab">A reason to walk the block</button>
   \`;
   shadow.appendChild(wrap);
 
   const panel = shadow.getElementById('bm-panel');
   const tab = shadow.getElementById('bm-tab');
-  const closeBtn = shadow.getElementById('bm-close');
+  const minimizeBtn = shadow.getElementById('bm-minimize');
   const list = shadow.getElementById('bm-list');
 
   let isOpen = false;
   tab.addEventListener('click', function() {
-    isOpen = !isOpen;
-    panel.classList.toggle('open', isOpen);
-    tab.style.display = isOpen ? 'none' : 'flex';
+    isOpen = true;
+    panel.classList.add('open');
+    tab.style.display = 'none';
   });
-  closeBtn.addEventListener('click', function() {
+  minimizeBtn.addEventListener('click', function() {
     isOpen = false;
     panel.classList.remove('open');
     tab.style.display = 'flex';
