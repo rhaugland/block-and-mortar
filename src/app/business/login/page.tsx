@@ -79,12 +79,19 @@ export default function BusinessLogin() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-[13px] text-text-tertiary">
-          New here?{" "}
-          <Link href="/business/signup" className="font-medium text-coral hover:text-peach">
-            Create an account
-          </Link>
-        </p>
+        <div className="mt-6 space-y-2 text-center text-[13px] text-text-tertiary">
+          <p>
+            <Link href="/forgot-password?role=business" className="font-medium text-text-secondary hover:text-coral">
+              Forgot password?
+            </Link>
+          </p>
+          <p>
+            New here?{" "}
+            <Link href="/business/signup" className="font-medium text-coral hover:text-peach">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

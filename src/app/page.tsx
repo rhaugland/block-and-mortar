@@ -37,7 +37,6 @@ export default function Home() {
             reason to walk the block, not just scroll the listings.
           </p>
           <div className="mt-10">
-            <p className="mb-3 text-[13px] font-medium uppercase tracking-widest text-text-tertiary">Sign Up</p>
             <div className="flex items-center justify-center gap-3">
               <Link
                 href="/business/signup"
