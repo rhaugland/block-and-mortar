@@ -15,22 +15,16 @@ export default function BusinessLogin() {
     setLoading(true);
 
     const fd = new FormData(e.currentTarget);
-
     try {
       const res = await fetch("/api/business/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: fd.get("email"),
-          password: fd.get("password"),
-        }),
+        body: JSON.stringify({ email: fd.get("email"), password: fd.get("password") }),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Login failed");
       }
-
       router.push("/business/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -40,47 +34,54 @@ export default function BusinessLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-stone-900">Business Login</h1>
-        <p className="mt-1 text-sm text-stone-500">Sign in to manage your offers.</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-4">
+      <Link href="/" className="mb-10 text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
+        Block &amp; Mortar
+      </Link>
+      <div className="w-full max-w-[380px]">
+        <h1 className="text-center text-[28px] font-semibold tracking-[-0.02em] text-text-primary">
+          Welcome back
+        </h1>
+        <p className="mt-2 text-center text-[15px] text-text-secondary">
+          Sign in to manage your offers and track performance.
+        </p>
 
         {error && (
-          <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
+            <label className="block text-[13px] font-medium text-text-secondary mb-1.5">Email</label>
             <input
               name="email"
               type="email"
               required
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded-xl border border-glass-border bg-surface-raised px-4 py-3 text-[15px] text-text-primary outline-none transition-shadow placeholder:text-text-tertiary focus:ring-2 focus:ring-accent/20 focus:border-accent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Password</label>
+            <label className="block text-[13px] font-medium text-text-secondary mb-1.5">Password</label>
             <input
               name="password"
               type="password"
               required
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded-xl border border-glass-border bg-surface-raised px-4 py-3 text-[15px] text-text-primary outline-none transition-shadow placeholder:text-text-tertiary focus:ring-2 focus:ring-accent/20 focus:border-accent"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-amber-600 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-text-primary py-3 text-[15px] font-medium text-white transition-all hover:bg-black active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-stone-500">
-          Don&apos;t have an account?{" "}
-          <Link href="/business/signup" className="font-medium text-amber-600 hover:text-amber-700">
-            Sign up
+        <p className="mt-6 text-center text-[13px] text-text-tertiary">
+          New here?{" "}
+          <Link href="/business/signup" className="font-medium text-accent hover:text-accent-hover">
+            Create an account
           </Link>
         </p>
       </div>

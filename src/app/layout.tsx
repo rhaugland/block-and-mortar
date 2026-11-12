@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
-  title: "Block & Mortar — Hyperlocal Ads for Apartment Communities",
+  title: "Block & Mortar — Local Perks for Apartment Communities",
   description:
-    "Connect local businesses with prospective renters. Apartment communities embed neighborhood perks, businesses reach high-intent movers.",
+    "Apartment websites show neighborhood deals to prospective renters. Local businesses reach people about to move in. Everyone wins.",
 };
 
 export default function RootLayout({
@@ -16,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className={inter.variable}>
+      <body className="font-[family-name:var(--font-inter)]">{children}</body>
     </html>
   );
 }

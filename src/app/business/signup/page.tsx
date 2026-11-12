@@ -12,14 +12,8 @@ const US_STATES = [
 ];
 
 const CATEGORIES = [
-  "Restaurant",
-  "Cafe",
-  "Gym / Fitness",
-  "Salon / Spa",
-  "Retail",
-  "Services",
-  "Entertainment",
-  "Other",
+  "Restaurant", "Cafe", "Gym / Fitness", "Salon / Spa",
+  "Retail", "Services", "Entertainment", "Other",
 ];
 
 export default function BusinessSignup() {
@@ -34,19 +28,12 @@ export default function BusinessSignup() {
 
     const fd = new FormData(e.currentTarget);
     const body = {
-      name: fd.get("name"),
-      category: fd.get("category"),
-      address: fd.get("address"),
-      city: fd.get("city"),
-      state: fd.get("state"),
-      zip: fd.get("zip"),
-      contactName: fd.get("contactName"),
-      email: fd.get("email"),
-      password: fd.get("password"),
-      phone: fd.get("phone") || undefined,
+      name: fd.get("name"), category: fd.get("category"),
+      address: fd.get("address"), city: fd.get("city"),
+      state: fd.get("state"), zip: fd.get("zip"),
+      contactName: fd.get("contactName"), email: fd.get("email"),
+      password: fd.get("password"), phone: fd.get("phone") || undefined,
       websiteUrl: fd.get("websiteUrl") || undefined,
-      lat: 0,
-      lng: 0,
     };
 
     try {
@@ -55,12 +42,10 @@ export default function BusinessSignup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Signup failed");
       }
-
       router.push("/business/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Signup failed");
@@ -69,102 +54,104 @@ export default function BusinessSignup() {
     }
   };
 
-  const inputClass =
-    "w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
-  const labelClass = "block text-sm font-medium text-stone-700 mb-1";
+  const input = "w-full rounded-xl border border-glass-border bg-surface-raised px-4 py-3 text-[15px] text-text-primary outline-none transition-shadow placeholder:text-text-tertiary focus:ring-2 focus:ring-accent/20 focus:border-accent";
+  const label = "block text-[13px] font-medium text-text-secondary mb-1.5";
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-stone-50 px-4 py-16">
-      <div className="w-full max-w-lg rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-stone-900">List your business</h1>
-        <p className="mt-1 text-sm text-stone-500">
-          Reach prospective renters in your neighborhood.
+    <div className="flex min-h-screen flex-col items-center bg-surface px-4 py-16">
+      <Link href="/" className="mb-10 text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
+        Block &amp; Mortar
+      </Link>
+      <div className="w-full max-w-[480px]">
+        <h1 className="text-center text-[28px] font-semibold tracking-[-0.02em] text-text-primary">
+          Get in front of new neighbors
+        </h1>
+        <p className="mt-2 text-center text-[15px] text-text-secondary">
+          Create offers that appear on apartment websites near you.
+          You only pay when a renter clicks.
         </p>
 
         {error && (
-          <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
-            <label className={labelClass}>Business Name *</label>
-            <input name="name" required className={inputClass} />
-          </div>
-
-          <div>
-            <label className={labelClass}>Category *</label>
-            <select name="category" required className={inputClass}>
-              <option value="">Select a category</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={labelClass}>Address *</label>
-            <input name="address" required className={inputClass} />
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>City *</label>
-              <input name="city" required className={inputClass} />
+              <label className={label}>Business name</label>
+              <input name="name" required className={input} />
             </div>
             <div>
-              <label className={labelClass}>State *</label>
-              <select name="state" required className={inputClass}>
+              <label className={label}>Category</label>
+              <select name="category" required className={input}>
+                <option value="">Select</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className={label}>Street address</label>
+            <input name="address" required className={input} />
+          </div>
+
+          <div className="grid grid-cols-[1fr_80px_100px] gap-3">
+            <div>
+              <label className={label}>City</label>
+              <input name="city" required className={input} />
+            </div>
+            <div>
+              <label className={label}>State</label>
+              <select name="state" required className={input}>
                 <option value="">--</option>
-                {US_STATES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelClass}>ZIP *</label>
-              <input name="zip" required className={inputClass} />
+              <label className={label}>ZIP</label>
+              <input name="zip" required className={input} />
             </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Contact Name *</label>
-            <input name="contactName" required className={inputClass} />
-          </div>
-
-          <div>
-            <label className={labelClass}>Email *</label>
-            <input name="email" type="email" required className={inputClass} />
-          </div>
-
-          <div>
-            <label className={labelClass}>Password *</label>
-            <input name="password" type="password" required minLength={8} className={inputClass} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Phone</label>
-              <input name="phone" type="tel" className={inputClass} />
+              <label className={label}>Your name</label>
+              <input name="contactName" required className={input} />
             </div>
             <div>
-              <label className={labelClass}>Website</label>
-              <input name="websiteUrl" type="url" placeholder="https://" className={inputClass} />
+              <label className={label}>Phone <span className="text-text-tertiary">(optional)</span></label>
+              <input name="phone" type="tel" className={input} />
             </div>
+          </div>
+
+          <div>
+            <label className={label}>Email</label>
+            <input name="email" type="email" required className={input} />
+          </div>
+
+          <div>
+            <label className={label}>Password <span className="text-text-tertiary">(8+ characters)</span></label>
+            <input name="password" type="password" required minLength={8} className={input} />
+          </div>
+
+          <div>
+            <label className={label}>Website <span className="text-text-tertiary">(optional)</span></label>
+            <input name="websiteUrl" type="url" placeholder="https://" className={input} />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-amber-600 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+            className="w-full rounded-xl bg-text-primary py-3 text-[15px] font-medium text-white transition-all hover:bg-black active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-stone-500">
+        <p className="mt-6 text-center text-[13px] text-text-tertiary">
           Already have an account?{" "}
-          <Link href="/business/login" className="font-medium text-amber-600 hover:text-amber-700">
-            Log in
+          <Link href="/business/login" className="font-medium text-accent hover:text-accent-hover">
+            Sign in
           </Link>
         </p>
       </div>

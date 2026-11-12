@@ -1,33 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function BusinessLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
 
-  const logout = async () => {
-    await fetch("/api/business/login", { method: "DELETE" }).catch(() => {});
+  const isAuth = pathname.includes("/login") || pathname.includes("/signup");
+
+  const logout = () => {
     document.cookie = "bm_token=; path=/; max-age=0";
     router.push("/business/login");
   };
 
+  if (isAuth) return <>{children}</>;
+
   return (
-    <div className="min-h-screen bg-stone-50">
-      <nav className="border-b border-stone-200 bg-white">
+    <div className="min-h-screen bg-surface">
+      <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/business/dashboard" className="text-xl font-bold tracking-tight text-stone-900">
-            Block &amp; Mortar <span className="text-sm font-normal text-stone-400">Business</span>
+          <Link href="/business/dashboard" className="text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
+            Block &amp; Mortar
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/business/dashboard" className="text-sm font-medium text-stone-600 hover:text-stone-900">
+          <div className="flex items-center gap-5">
+            <Link
+              href="/business/dashboard"
+              className={`text-[13px] font-medium transition-colors ${pathname === "/business/dashboard" ? "text-text-primary" : "text-text-secondary hover:text-text-primary"}`}
+            >
               Dashboard
             </Link>
-            <Link href="/business/dashboard/new-offer" className="text-sm font-medium text-stone-600 hover:text-stone-900">
+            <Link
+              href="/business/dashboard/new-offer"
+              className={`text-[13px] font-medium transition-colors ${pathname.includes("new-offer") ? "text-text-primary" : "text-text-secondary hover:text-text-primary"}`}
+            >
               New Offer
             </Link>
-            <button onClick={logout} className="text-sm font-medium text-stone-400 hover:text-stone-600">
-              Logout
+            <button
+              onClick={logout}
+              className="text-[13px] font-medium text-text-tertiary transition-colors hover:text-text-secondary"
+            >
+              Sign Out
             </button>
           </div>
         </div>

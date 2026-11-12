@@ -22,21 +22,21 @@ export default function AdminDashboard() {
         return r.json();
       })
       .then(setStats)
-      .catch(() => setError("Failed to load stats. Are you authorized?"));
+      .catch(() => setError("Failed to load stats."));
   }, []);
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50">
-        <p className="text-red-600">{error}</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <p className="text-[15px] text-red-500">{error}</p>
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50">
-        <p className="text-stone-500">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-text-tertiary border-t-text-primary" />
       </div>
     );
   }
@@ -44,36 +44,32 @@ export default function AdminDashboard() {
   const cards = [
     { label: "Properties", value: stats.totalProperties },
     { label: "Businesses", value: stats.totalBusinesses },
-    { label: "Active Offers", value: stats.totalOffers },
+    { label: "Active offers", value: stats.totalOffers },
     { label: "Impressions", value: stats.totalImpressions.toLocaleString() },
     { label: "Clicks", value: stats.totalClicks.toLocaleString() },
-    {
-      label: "Platform Revenue",
-      value: `$${(stats.totalRevenueCents / 100).toFixed(2)}`,
-    },
+    { label: "Platform revenue", value: `$${(stats.totalRevenueCents / 100).toFixed(2)}`, accent: true },
   ];
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <nav className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold tracking-tight text-stone-900">
-            Block &amp; Mortar{" "}
-            <span className="text-sm font-normal text-stone-400">Admin</span>
+    <div className="min-h-screen bg-surface">
+      <nav className="sticky top-0 z-50 border-b border-glass-border bg-glass backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center px-6 py-4">
+          <span className="text-[17px] font-semibold tracking-[-0.01em] text-text-primary">
+            Block &amp; Mortar
+            <span className="ml-2 text-[13px] font-normal text-text-tertiary">Admin</span>
           </span>
         </div>
       </nav>
 
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <h1 className="text-2xl font-bold text-stone-900">Platform Overview</h1>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-text-primary">
+          Platform overview
+        </h1>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (
-            <div
-              key={card.label}
-              className="rounded-lg border border-stone-200 bg-white p-6"
-            >
-              <p className="text-sm text-stone-500">{card.label}</p>
-              <p className="mt-1 text-3xl font-bold text-stone-900">
+            <div key={card.label} className="rounded-2xl border border-glass-border bg-surface-raised p-6">
+              <p className="text-[13px] font-medium text-text-tertiary">{card.label}</p>
+              <p className={`mt-1 text-[32px] font-semibold tracking-[-0.02em] ${"accent" in card && card.accent ? "text-green-600" : "text-text-primary"}`}>
                 {card.value}
               </p>
             </div>
