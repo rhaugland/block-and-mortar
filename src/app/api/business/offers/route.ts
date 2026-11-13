@@ -52,25 +52,30 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, imageUrl, redeemUrl, radiusMiles, budgetCents, cpcCents } = body;
+    const { title, description, imageUrl, radiusMiles, budgetCents, durationDays } = body;
 
-    if (!title || !description) {
+    if (!title) {
       return NextResponse.json(
-        { error: "Title and description required" },
+        { error: "Title is required" },
         { status: 400 }
       );
     }
+
+    const expiresAt = durationDays
+      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+      : null;
 
     const offer = await prisma.offer.create({
       data: {
         businessId: session.id,
         title,
-        description,
+        description: description || title,
         imageUrl: imageUrl || null,
-        redeemUrl: redeemUrl || null,
+        redeemUrl: null,
         radiusMiles: radiusMiles ?? 3.0,
-        budgetCents: budgetCents ?? 10000,
-        cpcCents: cpcCents ?? 50,
+        budgetCents: budgetCents ?? 2500,
+        cpcCents: 50,
+        expiresAt,
       },
     });
 
