@@ -61,7 +61,7 @@ export default function AdminBusinesses() {
               <th className="px-4 py-3 text-center">Offers</th>
               <th className="px-4 py-3 text-right">Clicks</th>
               <th className="px-4 py-3 text-right">Redeemed</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Budget Usage</th>
               <th className="px-4 py-3">Joined</th>
             </tr>
           </thead>

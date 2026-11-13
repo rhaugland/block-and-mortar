@@ -103,7 +103,7 @@ export default function AdminRevenue() {
                 <th className="px-4 py-3 text-right">Spent</th>
                 <th className="px-4 py-3 text-right">Remaining</th>
                 <th className="px-4 py-3 text-right">Clicks</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Budget Usage</th>
               </tr>
             </thead>
             <tbody>
