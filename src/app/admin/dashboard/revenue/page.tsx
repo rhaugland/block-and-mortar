@@ -160,7 +160,7 @@ export default function AdminRevenue() {
         </div>
       )}
 
-      {/* Payouts breakdown */}
+      {/* Payouts breakdown — expandable from card */}
       {open === "payouts" && (
         <div className="mt-4 overflow-hidden rounded-2xl border border-coral/15 bg-white/70 backdrop-blur-sm">
           <div className="border-b border-glass-border bg-coral-soft/20 px-5 py-3">
@@ -199,6 +199,40 @@ export default function AdminRevenue() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Unpaid payouts — always visible */}
+      {payouts.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-text-primary">Unpaid Payouts</h2>
+          <p className="mt-1 text-[13px] text-text-secondary">Properties with outstanding balances.</p>
+
+          <div className="mt-4 space-y-3">
+            {payouts
+              .sort((a, b) => b.owedCents - a.owedCents)
+              .map((p) => (
+                <div key={p.propertyId} className="flex items-center justify-between rounded-2xl border border-glass-border bg-white/70 px-5 py-4 backdrop-blur-sm">
+                  <div>
+                    <p className="text-[14px] font-medium text-text-primary">{p.propertyName}</p>
+                    <p className="mt-0.5 text-[12px] text-text-tertiary">{p.clickCount} claims &middot; {Math.round(p.revSharePct * 100)}% rev share</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <p className="text-[18px] font-semibold text-coral">${(p.owedCents / 100).toFixed(2)}</p>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Unpaid
+                    </span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-sunflower/20 bg-sunflower-soft/30 px-5 py-4 backdrop-blur-sm">
+            <p className="text-[15px] font-medium text-text-primary">
+              Total outstanding: <span className="font-semibold text-coral">${(stats.totalOwedCents / 100).toFixed(2)}</span>
+            </p>
+            <p className="mt-0.5 text-[12px] text-text-tertiary">Across {payouts.length} properties</p>
+          </div>
         </div>
       )}
     </div>
