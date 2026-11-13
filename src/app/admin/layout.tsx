@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { Logo } from "@/components/logo";
+import { SupportWidget } from "@/components/support-widget";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,13 +26,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-8">
-            <Link href="/admin/dashboard" className="text-[15px] font-bold tracking-tight text-white">
-              B&M <span className="text-sky-400">Admin</span>
-            </Link>
+    <div className="relative min-h-screen bg-gradient-to-b from-peach-soft/60 via-sunflower-soft/20 to-surface">
+      <div className="pointer-events-none fixed -left-10 top-32 h-40 w-40 rounded-full bg-coral/8 blur-3xl" />
+      <div className="pointer-events-none fixed -right-10 top-64 h-48 w-48 rounded-full bg-sunflower/10 blur-3xl" />
+
+      <nav className="sticky top-0 z-50 border-b border-glass-border bg-white/60 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2.5">
+              <Logo href="/admin/dashboard" />
+              <span className="rounded-full bg-coral/10 px-2 py-0.5 text-[11px] font-semibold text-coral">Admin</span>
+            </div>
             <div className="flex items-center gap-1">
               {nav.map((item) => (
                 <Link
@@ -38,8 +44,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${
                     pathname === item.href
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-coral/10 text-coral"
+                      : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
                   }`}
                 >
                   {item.label}
@@ -49,13 +55,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <button
             onClick={logout}
-            className="text-[13px] text-slate-500 transition-colors hover:text-slate-300"
+            className="text-[13px] font-medium text-text-tertiary transition-colors hover:text-text-secondary"
           >
             Sign Out
           </button>
         </div>
       </nav>
       {children}
+      <SupportWidget />
     </div>
   );
 }

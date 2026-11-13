@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/logo";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -33,39 +34,51 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800">
-      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-        <h1 className="text-center text-[22px] font-semibold tracking-tight text-white">
-          B&M Admin
-        </h1>
-        <p className="mt-1 text-center text-[13px] text-slate-400">Internal dashboard</p>
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-b from-peach-soft via-sunflower-soft/40 to-surface px-4 py-12">
+      <div className="absolute -left-4 top-20 h-24 w-24 rounded-full bg-coral/10 blur-2xl" />
+      <div className="absolute -right-8 top-40 h-32 w-32 rounded-full bg-sunflower/15 blur-2xl" />
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      <div className="w-full max-w-[420px] rounded-3xl border border-glass-border bg-white/70 p-8 shadow-xl backdrop-blur-xl sm:p-10">
+        <div className="mb-8">
+          <Logo />
+        </div>
+
+        <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-text-primary">
+          Admin sign in
+        </h1>
+        <p className="mt-1.5 text-[15px] text-text-secondary">
+          Internal dashboard for the Block &amp; Mortar team.
+        </p>
+
+        {error && (
+          <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600">{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-7 space-y-3.5">
           <div>
-            <label className="block text-[12px] font-medium text-slate-400 mb-1.5">Email</label>
+            <label className="block text-[13px] font-medium text-text-secondary mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-[14px] text-white outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              className="w-full rounded-xl border border-glass-border bg-white/80 px-4 py-3 text-[15px] text-text-primary outline-none transition-shadow placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral"
             />
           </div>
           <div>
-            <label className="block text-[12px] font-medium text-slate-400 mb-1.5">Password</label>
+            <label className="block text-[13px] font-medium text-text-secondary mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-[14px] text-white outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              className="w-full rounded-xl border border-glass-border bg-white/80 px-4 py-3 text-[15px] text-text-primary outline-none transition-shadow placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral"
             />
           </div>
-          {error && <p className="text-[13px] text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-sky-600 py-2.5 text-[14px] font-medium text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:opacity-50"
+            className="w-full rounded-xl bg-coral py-3 text-[15px] font-medium text-white shadow-lg shadow-coral/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-coral/30 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

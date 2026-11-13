@@ -36,20 +36,22 @@ export default function AdminBusinesses() {
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-600 border-t-sky-400" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-text-tertiary border-t-text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
-      <h1 className="text-[24px] font-semibold tracking-tight">Businesses</h1>
-      <p className="mt-1 text-[14px] text-slate-400">{businesses.length} businesses signed up.</p>
+    <div className="mx-auto max-w-7xl px-6 py-10">
+      <div>
+        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-text-primary">Businesses</h1>
+        <p className="mt-1 text-[15px] text-text-secondary">{businesses.length} businesses signed up.</p>
+      </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-white/10">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-glass-border bg-white/70 backdrop-blur-sm">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-white/10 bg-white/5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <tr className="border-b border-glass-border bg-white/40 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
               <th className="px-4 py-3">Business</th>
               <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">Location</th>
@@ -70,36 +72,32 @@ export default function AdminBusinesses() {
               const noBudget = b.budgetCents === 0;
 
               return (
-                <tr key={b.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 text-[13px] font-medium text-white">{b.name}</td>
-                  <td className="px-4 py-3 text-[12px] text-slate-400">{b.category}</td>
-                  <td className="px-4 py-3 text-[12px] text-slate-400">{b.city}, {b.state}</td>
-                  <td className="px-4 py-3 text-[12px] text-slate-400">{b.email}</td>
-                  <td className="px-4 py-3 text-right text-[13px] text-slate-300">
-                    ${(b.budgetCents / 100).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-[13px] text-slate-300">
-                    ${(b.spentCents / 100).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3 text-center text-[13px] text-slate-300">{b.offerCount}</td>
-                  <td className="px-4 py-3 text-right text-[13px] text-slate-300">{b.clickCount.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-[13px] text-slate-300">{b.redemptionCount.toLocaleString()}</td>
+                <tr key={b.id} className="border-b border-glass-border/50 last:border-0">
+                  <td className="px-4 py-3 text-[13px] font-medium text-text-primary">{b.name}</td>
+                  <td className="px-4 py-3 text-[12px] text-text-secondary">{b.category}</td>
+                  <td className="px-4 py-3 text-[12px] text-text-secondary">{b.city}, {b.state}</td>
+                  <td className="px-4 py-3 text-[12px] text-text-secondary">{b.email}</td>
+                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">${(b.budgetCents / 100).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">${(b.spentCents / 100).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-center text-[13px] text-text-primary">{b.offerCount}</td>
+                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">{b.clickCount.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">{b.redemptionCount.toLocaleString()}</td>
                   <td className="px-4 py-3">
                     {depleted ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-400" /> Depleted
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> Depleted
                       </span>
                     ) : noBudget ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/10 px-2 py-0.5 text-[11px] font-medium text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" /> No budget
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> No budget
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {Math.round(pct)}% used
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> {Math.round(pct)}% used
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-[12px] text-slate-500">
+                  <td className="px-4 py-3 text-[12px] text-text-tertiary">
                     {new Date(b.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                 </tr>
@@ -108,7 +106,7 @@ export default function AdminBusinesses() {
           </tbody>
         </table>
         {businesses.length === 0 && (
-          <div className="py-12 text-center text-[14px] text-slate-500">No businesses yet.</div>
+          <div className="py-16 text-center text-[15px] text-text-secondary">No businesses yet.</div>
         )}
       </div>
     </div>
