@@ -84,6 +84,7 @@ model Business {
   impressions Impression[]
   clicks      Click[]
   redemptions Redemption[]
+  invoices    Invoice[]
 }
 
 // ─── Offer (Coupon / Deal) ──────────────────────────────────────────
@@ -185,6 +186,26 @@ model Payout {
   createdAt       DateTime @default(now())
 
   @@index([propertyId])
+  @@index([status])
+}
+
+// ─── Invoice (Business billing) ─────────────────────────────────
+
+model Invoice {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  amountCents     Int
+  clickCount      Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  stripeInvoiceId String?  @unique
+  stripeHostedUrl String?
+  status          String   @default("pending") // pending, paid, failed, void
+  failReason      String?
+  createdAt       DateTime @default(now())
+
+  @@index([businessId])
   @@index([status])
 }
 
