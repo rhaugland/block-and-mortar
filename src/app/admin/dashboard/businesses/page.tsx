@@ -96,7 +96,6 @@ export default function AdminBusinesses() {
               <th className="px-4 py-3 text-right">Redeemed</th>
               <th className="px-4 py-3">Budget Usage</th>
               <th className="px-4 py-3 text-center">Alerts</th>
-              <th className="px-4 py-3">Joined</th>
             </tr>
           </thead>
           <tbody>
@@ -167,15 +166,12 @@ export default function AdminBusinesses() {
                         <span className="text-[11px] text-text-tertiary">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[12px] text-text-tertiary">
-                      {new Date(b.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </td>
                   </tr>
 
                   {/* Expanded offers */}
                   {isOpen && (
                     <tr key={`${b.id}-offers`}>
-                      <td colSpan={13} className="bg-surface/50 px-0 py-0">
+                      <td colSpan={12} className="bg-surface/50 px-0 py-0">
                         <div className="mx-6 my-3">
                           {b.offers.length === 0 ? (
                             <p className="py-4 text-center text-[13px] text-text-tertiary">No offers created yet.</p>
