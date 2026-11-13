@@ -15,6 +15,9 @@ interface Stats {
   netRevenueCents: number;
 }
 
+interface SignupDay { day: string; businesses: number; properties: number }
+interface ActivityDay { day: string; claims: number; redeemed: number }
+
 interface PropertyRow {
   id: string;
   name: string;
@@ -47,18 +50,24 @@ export default function AdminOverview() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [properties, setProperties] = useState<PropertyRow[]>([]);
   const [businesses, setBusinesses] = useState<BusinessRow[]>([]);
+  const [signups, setSignups] = useState<SignupDay[]>([]);
+  const [activity, setActivity] = useState<ActivityDay[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/overview")
-      .then((r) => {
+    Promise.all([
+      fetch("/api/admin/overview").then((r) => {
         if (!r.ok) { window.location.href = "/admin/login"; throw new Error("Unauthorized"); }
         return r.json();
-      })
-      .then((d) => {
-        setStats(d.stats);
-        setProperties(d.properties);
-        setBusinesses(d.businesses);
+      }),
+      fetch("/api/admin/charts").then((r) => r.ok ? r.json() : { signups: [], activity: [] }),
+    ])
+      .then(([overview, charts]) => {
+        setStats(overview.stats);
+        setProperties(overview.properties);
+        setBusinesses(overview.businesses);
+        setSignups(charts.signups || []);
+        setActivity(charts.activity || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -245,20 +254,84 @@ export default function AdminOverview() {
         </Link>
       </div>
 
-      {/* ── Platform Counts ── */}
-      <div className="mt-6 grid gap-6 grid-cols-2">
-        <Link href="/admin/dashboard/businesses" className="group rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm transition-all hover:shadow-md hover:border-coral/20">
-          <p className="text-[12px] font-medium text-text-tertiary">Businesses</p>
-          <p className="mt-2 text-[32px] font-semibold tracking-tight text-text-primary">{stats.totalBusinesses}</p>
-          <p className="mt-1 text-[13px] text-text-secondary">{stats.activeOffers} active offers</p>
-          <p className="mt-2 text-[12px] text-text-tertiary group-hover:text-coral transition-colors">View all &rarr;</p>
-        </Link>
-        <Link href="/admin/dashboard/properties" className="group rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm transition-all hover:shadow-md hover:border-coral/20">
-          <p className="text-[12px] font-medium text-text-tertiary">Properties</p>
-          <p className="mt-2 text-[32px] font-semibold tracking-tight text-text-primary">{stats.totalProperties}</p>
-          <p className="mt-1 text-[13px] text-text-secondary">{widgetActive.length} widgets live</p>
-          <p className="mt-2 text-[12px] text-text-tertiary group-hover:text-coral transition-colors">View all &rarr;</p>
-        </Link>
+      {/* ── Growth Charts ── */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        {/* Customer Growth */}
+        <div className="rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
+          <p className="text-[16px] font-semibold text-text-primary">Customer Growth</p>
+          <p className="mt-0.5 text-[12px] text-text-tertiary">Last 30 days &middot; cumulative</p>
+          {signups.length > 0 && (() => {
+            const maxVal = Math.max(...signups.map((s) => Math.max(s.businesses, s.properties)), 1);
+            const W = 100;
+            const H = 40;
+            const step = W / Math.max(signups.length - 1, 1);
+            const bizPoints = signups.map((s, i) => `${(i * step).toFixed(1)},${(H - (s.businesses / maxVal) * H * 0.85 - H * 0.05).toFixed(1)}`).join(" ");
+            const propPoints = signups.map((s, i) => `${(i * step).toFixed(1)},${(H - (s.properties / maxVal) * H * 0.85 - H * 0.05).toFixed(1)}`).join(" ");
+            const lastBiz = signups[signups.length - 1];
+
+            return (
+              <div className="mt-4">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[140px]" preserveAspectRatio="none">
+                  <polyline points={propPoints} fill="none" stroke="#fbbf24" strokeWidth="0.8" strokeLinejoin="round" />
+                  <polyline points={bizPoints} fill="none" stroke="#ff6b5b" strokeWidth="0.8" strokeLinejoin="round" />
+                </svg>
+                <div className="mt-3 flex items-center gap-5 text-[12px]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-coral" />
+                    Businesses <span className="font-semibold text-text-primary">{lastBiz.businesses}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-sunflower" />
+                    Properties <span className="font-semibold text-text-primary">{lastBiz.properties}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Claims & Redemptions Over Time */}
+        <div className="rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
+          <p className="text-[16px] font-semibold text-text-primary">Claims &amp; Redemptions</p>
+          <p className="mt-0.5 text-[12px] text-text-tertiary">Last 30 days &middot; daily</p>
+          {activity.length > 0 && (() => {
+            const maxVal = Math.max(...activity.map((a) => Math.max(a.claims, a.redeemed)), 1);
+            const W = 100;
+            const H = 40;
+            const barW = W / activity.length * 0.7;
+            const gap = W / activity.length;
+            const totalClaims = activity.reduce((s, a) => s + a.claims, 0);
+            const totalRedeemed = activity.reduce((s, a) => s + a.redeemed, 0);
+
+            return (
+              <div className="mt-4">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[140px]" preserveAspectRatio="none">
+                  {activity.map((a, i) => {
+                    const claimH = (a.claims / maxVal) * H * 0.85;
+                    const redeemH = (a.redeemed / maxVal) * H * 0.85;
+                    const x = i * gap + (gap - barW) / 2;
+                    return (
+                      <g key={i}>
+                        <rect x={x} y={H - claimH} width={barW} height={claimH} rx="0.5" fill="#ff6b5b" fillOpacity="0.25" />
+                        <rect x={x} y={H - redeemH} width={barW} height={redeemH} rx="0.5" fill="#ff6b5b" />
+                      </g>
+                    );
+                  })}
+                </svg>
+                <div className="mt-3 flex items-center gap-5 text-[12px]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-coral/25" />
+                    Claims <span className="font-semibold text-text-primary">{totalClaims}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-coral" />
+                    Redeemed <span className="font-semibold text-text-primary">{totalRedeemed}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       </div>
     </div>
   );
