@@ -102,7 +102,7 @@ export default function AdminRevenue() {
                 <th className="px-4 py-3 text-right">Budget</th>
                 <th className="px-4 py-3 text-right">Spent</th>
                 <th className="px-4 py-3 text-right">Remaining</th>
-                <th className="px-4 py-3 text-right">Clicks</th>
+                <th className="px-4 py-3 text-right">Claims</th>
                 <th className="px-4 py-3">Budget Usage</th>
               </tr>
             </thead>
@@ -150,7 +150,7 @@ export default function AdminRevenue() {
       <div className="mt-10">
         <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-text-primary">Property Payouts Owed</h2>
         <p className="mt-1 text-[13px] text-text-secondary">
-          Amount owed to each apartment property based on clicks through their widget.
+          Amount owed to each apartment property based on claims through their widget.
         </p>
 
         <div className="mt-4 overflow-hidden rounded-2xl border border-glass-border bg-white/70 backdrop-blur-sm">
@@ -158,7 +158,7 @@ export default function AdminRevenue() {
             <thead>
               <tr className="border-b border-glass-border bg-white/40 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
                 <th className="px-4 py-3">Property</th>
-                <th className="px-4 py-3 text-right">Clicks</th>
+                <th className="px-4 py-3 text-right">Claims</th>
                 <th className="px-4 py-3 text-right">Rev Share</th>
                 <th className="px-4 py-3 text-right">Gross CPC Value</th>
                 <th className="px-4 py-3 text-right">Amount Owed</th>

@@ -67,8 +67,7 @@ export default function AdminOffers() {
               <th className="px-4 py-3 text-right">CPC</th>
               <th className="px-4 py-3 text-right">Budget</th>
               <th className="px-4 py-3 text-right">Spent</th>
-              <th className="px-4 py-3 text-right">Impr.</th>
-              <th className="px-4 py-3 text-right">Clicks</th>
+              <th className="px-4 py-3 text-right">Claims</th>
               <th className="px-4 py-3 text-right">Redeemed</th>
               <th className="px-4 py-3">Duration</th>
             </tr>
@@ -94,7 +93,6 @@ export default function AdminOffers() {
                   <td className="px-4 py-3 text-right text-[12px] text-text-secondary">${(o.cpcCents / 100).toFixed(2)}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">${(o.budgetCents / 100).toFixed(2)}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">${(o.spentCents / 100).toFixed(2)}</td>
-                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">{o._count.impressions.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">{o._count.clicks.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">{o._count.redemptions.toLocaleString()}</td>
                   <td className="px-4 py-3 text-[12px] text-text-secondary">

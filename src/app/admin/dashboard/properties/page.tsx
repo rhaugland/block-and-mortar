@@ -13,7 +13,6 @@ interface PropertyRow {
   widgetLastPing: string | null;
   revSharePct: number;
   locationCount: number;
-  impressionCount: number;
   clickCount: number;
   redemptionCount: number;
   createdAt: string;
@@ -58,8 +57,7 @@ export default function AdminProperties() {
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3 text-center">Locations</th>
               <th className="px-4 py-3 text-center">Widget</th>
-              <th className="px-4 py-3 text-right">Impressions</th>
-              <th className="px-4 py-3 text-right">Clicks</th>
+              <th className="px-4 py-3 text-right">Claims</th>
               <th className="px-4 py-3 text-right">Redeemed</th>
               <th className="px-4 py-3 text-right">Rev Share</th>
               <th className="px-4 py-3">Joined</th>
@@ -109,7 +107,6 @@ export default function AdminProperties() {
                       {widgetLabel}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right text-[13px] text-text-primary">{p.impressionCount.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">{p.clickCount.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">{p.redemptionCount.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-secondary">{Math.round(p.revSharePct * 100)}%</td>

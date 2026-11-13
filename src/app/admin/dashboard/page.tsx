@@ -7,7 +7,6 @@ interface Stats {
   totalBusinesses: number;
   totalOffers: number;
   activeOffers: number;
-  totalImpressions: number;
   totalClicks: number;
   totalRedemptions: number;
   totalRevenueCents: number;
@@ -42,9 +41,8 @@ export default function AdminOverview() {
     { label: "Properties", value: stats.totalProperties, color: "border-sunflower/20 bg-sunflower-soft/60" },
     { label: "Businesses", value: stats.totalBusinesses, color: "border-coral/15 bg-coral-soft/50" },
     { label: "Active Offers", value: `${stats.activeOffers} / ${stats.totalOffers}`, color: "border-glass-border bg-white/70" },
-    { label: "Impressions", value: stats.totalImpressions.toLocaleString(), color: "border-sunflower/20 bg-sunflower-soft/60" },
-    { label: "Clicks", value: stats.totalClicks.toLocaleString(), color: "border-coral/15 bg-coral-soft/50" },
-    { label: "Redemptions", value: stats.totalRedemptions.toLocaleString(), color: "border-glass-border bg-white/70" },
+    { label: "Claims", value: stats.totalClicks.toLocaleString(), color: "border-sunflower/20 bg-sunflower-soft/60" },
+    { label: "Redeemed", value: stats.totalRedemptions.toLocaleString(), color: "border-coral/15 bg-coral-soft/50" },
   ];
 
   return (

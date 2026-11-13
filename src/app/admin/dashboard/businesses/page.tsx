@@ -13,7 +13,7 @@ interface OfferRow {
   startsAt: string;
   expiresAt: string | null;
   createdAt: string;
-  _count: { impressions: number; clicks: number; redemptions: number };
+  _count: { clicks: number; redemptions: number };
 }
 
 interface BusinessRow {
@@ -92,7 +92,7 @@ export default function AdminBusinesses() {
               <th className="px-4 py-3 text-right">Budget</th>
               <th className="px-4 py-3 text-right">Spent</th>
               <th className="px-4 py-3 text-center">Offers</th>
-              <th className="px-4 py-3 text-right">Clicks</th>
+              <th className="px-4 py-3 text-right">Claims</th>
               <th className="px-4 py-3 text-right">Redeemed</th>
               <th className="px-4 py-3">Budget Usage</th>
               <th className="px-4 py-3 text-center">Alerts</th>
@@ -185,8 +185,7 @@ export default function AdminBusinesses() {
                                     <th className="px-3 py-2 text-right">Radius</th>
                                     <th className="px-3 py-2 text-right">CPC</th>
                                     <th className="px-3 py-2 text-right">Spent</th>
-                                    <th className="px-3 py-2 text-right">Impressions</th>
-                                    <th className="px-3 py-2 text-right">Clicks</th>
+                                    <th className="px-3 py-2 text-right">Claims</th>
                                     <th className="px-3 py-2 text-right">Redeemed</th>
                                     <th className="px-3 py-2">Duration</th>
                                   </tr>
@@ -213,7 +212,6 @@ export default function AdminBusinesses() {
                                         <td className="px-3 py-2.5 text-right text-[12px] text-text-secondary">{o.radiusMiles} mi</td>
                                         <td className="px-3 py-2.5 text-right text-[12px] text-text-secondary">${(o.cpcCents / 100).toFixed(2)}</td>
                                         <td className="px-3 py-2.5 text-right text-[12px] text-text-primary">${(o.spentCents / 100).toFixed(2)}</td>
-                                        <td className="px-3 py-2.5 text-right text-[12px] text-text-primary">{o._count.impressions.toLocaleString()}</td>
                                         <td className="px-3 py-2.5 text-right text-[12px] text-text-primary">{o._count.clicks.toLocaleString()}</td>
                                         <td className="px-3 py-2.5 text-right text-[12px] text-text-primary">{o._count.redemptions.toLocaleString()}</td>
                                         <td className="px-3 py-2.5 text-[12px] text-text-secondary">
