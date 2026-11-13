@@ -69,8 +69,33 @@ export default function AdminProperties() {
             {properties.map((p) => {
               const installed = p.widgetLastPing != null;
               const recent = installed && (Date.now() - new Date(p.widgetLastPing!).getTime()) < 86400000;
-              const widgetStatus = !p.widgetEnabled ? "Off" : recent ? "Live" : installed ? "Stale" : "Not installed";
-              const dotColor = !p.widgetEnabled ? "bg-text-tertiary" : recent ? "bg-green-500" : "bg-amber-400";
+
+              let widgetLabel: string;
+              let badgeBg: string;
+              let badgeText: string;
+              let dotColor: string;
+
+              if (!p.widgetEnabled) {
+                widgetLabel = "Hidden";
+                badgeBg = "bg-slate-100";
+                badgeText = "text-slate-500";
+                dotColor = "bg-slate-400";
+              } else if (recent) {
+                widgetLabel = "Active";
+                badgeBg = "bg-green-50";
+                badgeText = "text-green-600";
+                dotColor = "bg-green-500";
+              } else if (installed) {
+                widgetLabel = "Inactive";
+                badgeBg = "bg-amber-50";
+                badgeText = "text-amber-600";
+                dotColor = "bg-amber-400";
+              } else {
+                widgetLabel = "Not installed";
+                badgeBg = "bg-red-50";
+                badgeText = "text-red-500";
+                dotColor = "bg-red-400";
+              }
 
               return (
                 <tr key={p.id} className="border-b border-glass-border/50 last:border-0">
@@ -79,9 +104,9 @@ export default function AdminProperties() {
                   <td className="px-4 py-3 text-[12px] text-text-secondary">{p.email}</td>
                   <td className="px-4 py-3 text-center text-[13px] text-text-primary">{p.locationCount}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${badgeBg} ${badgeText}`}>
                       <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotColor}`} />
-                      {widgetStatus}
+                      {widgetLabel}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right text-[13px] text-text-primary">{p.impressionCount.toLocaleString()}</td>
