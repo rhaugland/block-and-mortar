@@ -53,6 +53,23 @@ export default function AdminOverview() {
   const [signups, setSignups] = useState<SignupDay[]>([]);
   const [activity, setActivity] = useState<ActivityDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("bm_dismissed_alerts");
+      if (stored) setDismissed(new Set(JSON.parse(stored)));
+    } catch {}
+  }, []);
+
+  const dismissAlert = (key: string) => {
+    setDismissed((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      localStorage.setItem("bm_dismissed_alerts", JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   useEffect(() => {
     Promise.all([
@@ -110,7 +127,13 @@ export default function AdminOverview() {
       </div>
 
       {/* ── Alerts Card ── */}
-      {(alerts.length > 0 || widgetNotInstalled.length > 0) && (
+      {(() => {
+        const visibleAlerts = alerts.filter((a) => !dismissed.has(`offer-${a.title}-${a.businessName}`));
+        const visibleWidgets = widgetNotInstalled.filter((p) => !dismissed.has(`widget-${p.id}`));
+        const visibleCount = visibleAlerts.length + visibleWidgets.length;
+        if (visibleCount === 0) return null;
+        return true;
+      })() && (
         <div className="mt-8 rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -122,35 +145,48 @@ export default function AdminOverview() {
               <p className="text-[16px] font-semibold text-text-primary">Action Needed</p>
             </div>
             <span className="rounded-full bg-coral/10 px-2.5 py-0.5 text-[12px] font-semibold text-coral">
-              {alerts.length + widgetNotInstalled.length}
+              {alerts.filter((a) => !dismissed.has(`offer-${a.title}-${a.businessName}`)).length + widgetNotInstalled.filter((p) => !dismissed.has(`widget-${p.id}`)).length}
             </span>
           </div>
 
           <div className="mt-4 space-y-2.5">
-            {alerts.map((a, i) => (
-              <div key={i} className={`flex items-center justify-between rounded-xl px-4 py-3 ${
-                a.type === "expired" ? "border border-red-200 bg-red-50" : "border border-amber-200 bg-amber-50"
-              }`}>
-                <div>
-                  <p className={`text-[13px] font-medium ${a.type === "expired" ? "text-red-700" : "text-amber-800"}`}>
-                    {a.type === "expired" ? "Expired" : `Expires in ${a.days}d`}: &ldquo;{a.title}&rdquo;
-                  </p>
-                  <p className={`text-[12px] ${a.type === "expired" ? "text-red-500" : "text-amber-600"}`}>
-                    {a.businessName} &mdash; {a.type === "expired" ? "deal has ended" : "reach out to renew"}
-                  </p>
+            {alerts.filter((a) => !dismissed.has(`offer-${a.title}-${a.businessName}`)).map((a, i) => {
+              const key = `offer-${a.title}-${a.businessName}`;
+              return (
+                <div key={i} className={`flex items-center justify-between rounded-xl px-4 py-3 ${
+                  a.type === "expired" ? "border border-red-200 bg-red-50" : "border border-amber-200 bg-amber-50"
+                }`}>
+                  <div>
+                    <p className={`text-[13px] font-medium ${a.type === "expired" ? "text-red-700" : "text-amber-800"}`}>
+                      {a.type === "expired" ? "Expired" : `Expires in ${a.days}d`}: &ldquo;{a.title}&rdquo;
+                    </p>
+                    <p className={`text-[12px] ${a.type === "expired" ? "text-red-500" : "text-amber-600"}`}>
+                      {a.businessName} &mdash; {a.type === "expired" ? "deal has ended" : "reach out to renew"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link href="/admin/dashboard/businesses" className={`shrink-0 text-[12px] font-medium ${a.type === "expired" ? "text-red-600" : "text-amber-700"}`}>
+                      View &rarr;
+                    </Link>
+                    <button onClick={() => dismissAlert(key)} className={`shrink-0 rounded-full p-1 transition-colors hover:bg-black/5 ${a.type === "expired" ? "text-red-400 hover:text-red-600" : "text-amber-400 hover:text-amber-600"}`} title="Dismiss">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 4l6 6M10 4l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <Link href="/admin/dashboard/businesses" className={`shrink-0 text-[12px] font-medium ${a.type === "expired" ? "text-red-600" : "text-amber-700"}`}>
-                  View &rarr;
-                </Link>
-              </div>
-            ))}
-            {widgetNotInstalled.map((p) => (
+              );
+            })}
+            {widgetNotInstalled.filter((p) => !dismissed.has(`widget-${p.id}`)).map((p) => (
               <div key={p.id} className="flex items-center justify-between rounded-xl border border-glass-border bg-surface/50 px-4 py-3">
                 <div>
                   <p className="text-[13px] font-medium text-text-primary">{p.name} &mdash; widget not installed</p>
                   <p className="text-[12px] text-text-tertiary">Signed up but hasn&apos;t added the embed code yet</p>
                 </div>
-                <Link href="/admin/dashboard/properties" className="shrink-0 text-[12px] font-medium text-coral">View &rarr;</Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/admin/dashboard/properties" className="shrink-0 text-[12px] font-medium text-coral">View &rarr;</Link>
+                  <button onClick={() => dismissAlert(`widget-${p.id}`)} className="shrink-0 rounded-full p-1 text-text-tertiary transition-colors hover:bg-black/5 hover:text-text-primary" title="Dismiss">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 4l6 6M10 4l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
