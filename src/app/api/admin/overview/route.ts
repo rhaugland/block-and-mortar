@@ -39,9 +39,19 @@ export async function GET(req: NextRequest) {
         createdAt: true,
         _count: { select: { offers: true, clicks: true, redemptions: true } },
         offers: {
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
+            title: true,
+            active: true,
+            radiusMiles: true,
+            budgetCents: true,
             spentCents: true,
+            cpcCents: true,
+            startsAt: true,
+            expiresAt: true,
+            createdAt: true,
+            _count: { select: { impressions: true, clicks: true, redemptions: true } },
           },
         },
       },
@@ -90,6 +100,7 @@ export async function GET(req: NextRequest) {
       clickCount: b._count.clicks,
       redemptionCount: b._count.redemptions,
       createdAt: b.createdAt,
+      offers: b.offers,
     };
   });
 
