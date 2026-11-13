@@ -24,13 +24,13 @@ export async function GET() {
     '.bm-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-family: ' + c.font + '; }' +
     '.bm-tab { display: flex; align-items: center; gap: 6px; cursor: pointer; background: ' + grad + '; color: #fff; border: none; padding: 10px 16px; border-radius: 24px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.15); transition: transform 0.2s; }' +
     '.bm-tab:hover { transform: scale(1.05); }' +
-    '.bm-panel { display: none; width: 320px; max-height: 440px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: ' + c.radius + '; box-shadow: 0 8px 30px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 8px; }' +
+    '.bm-panel { display: none; width: 320px; max-height: 520px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: ' + c.radius + '; box-shadow: 0 8px 30px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 8px; }' +
     '.bm-panel.open { display: block; }' +
     '.bm-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: ' + grad + '; }' +
     '.bm-header-title { font-size: 14px; font-weight: 700; color: #fff; }' +
     '.bm-minimize { cursor: pointer; background: none; border: none; font-size: 16px; color: rgba(255,255,255,0.7); padding: 4px; transition: color 0.15s; }' +
     '.bm-minimize:hover { color: #fff; }' +
-    '.bm-list { overflow-y: auto; max-height: 340px; padding: 8px; }' +
+    '.bm-list { overflow-y: auto; max-height: 420px; padding: 8px; }' +
     '.bm-offer { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: ' + Math.max(parseInt(c.radius) - 4, 6) + 'px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; }' +
     '.bm-offer:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }' +
     '.bm-offer:last-child { margin-bottom: 0; }' +
@@ -43,6 +43,19 @@ export async function GET() {
     '.bm-desc { font-size: 12px; color: #57534e; line-height: 1.4; margin-bottom: 8px; }' +
     '.bm-btn { display: inline-block; cursor: pointer; background: ' + grad + '; color: #fff; border: none; padding: 6px 14px; border-radius: ' + Math.max(parseInt(c.radius) - 8, 4) + 'px; font-size: 12px; font-weight: 600; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }' +
     '.bm-btn:hover { transform: scale(1.03); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }' +
+    '.bm-btn:disabled { opacity: 0.6; cursor: default; transform: none; }' +
+    '.bm-form { display: none; margin-top: 8px; }' +
+    '.bm-form.show { display: block; }' +
+    '.bm-input { display: block; width: 100%; padding: 7px 10px; margin-bottom: 6px; border: 1px solid #e7e5e4; border-radius: 8px; font-size: 12px; font-family: ' + c.font + '; outline: none; color: #1c1917; }' +
+    '.bm-input:focus { border-color: ' + c.primary + '; box-shadow: 0 0 0 2px ' + c.primary + '20; }' +
+    '.bm-form-row { display: flex; gap: 6px; }' +
+    '.bm-form-row .bm-input { flex: 1; }' +
+    '.bm-submit { display: block; width: 100%; cursor: pointer; background: ' + grad + '; color: #fff; border: none; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: ' + c.font + '; transition: transform 0.15s; }' +
+    '.bm-submit:hover { transform: scale(1.02); }' +
+    '.bm-submit:disabled { opacity: 0.6; cursor: default; transform: none; }' +
+    '.bm-sent { text-align: center; padding: 12px 0 4px; font-size: 12px; color: #22c55e; font-weight: 600; }' +
+    '.bm-sent-sub { text-align: center; font-size: 11px; color: #a8a29e; margin-top: 2px; }' +
+    '.bm-err { font-size: 11px; color: #ef4444; margin-bottom: 6px; }' +
     '.bm-footer { text-align: center; padding: 8px; font-size: 10px; color: #a8a29e; border-top: 1px solid rgba(0,0,0,0.06); }' +
     '.bm-empty { text-align: center; padding: 24px 16px; color: #78716c; font-size: 13px; }';
   }
@@ -95,7 +108,7 @@ export async function GET() {
     'Other': '&#11088;'
   };
 
-  // Ping to confirm widget is installed and loading
+  // Ping to confirm widget is installed
   fetch(origin + '/api/widget/ping', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -108,7 +121,6 @@ export async function GET() {
       var offers = data.offers || data;
       var customStyle = data.style;
 
-      // Apply custom styles if the property has configured them
       if (customStyle) {
         C.primary = customStyle.primaryColor || C.primary;
         C.accent = customStyle.accentColor || C.accent;
@@ -121,7 +133,8 @@ export async function GET() {
         list.innerHTML = '<div class="bm-empty">No perks available yet. Check back soon!</div>';
         return;
       }
-      list.innerHTML = offers.map(function(o) {
+
+      list.innerHTML = offers.map(function(o, i) {
         var icon = catIcons[o.businessCategory] || '&#11088;';
         var logo = o.businessLogoUrl
           ? '<img src="' + o.businessLogoUrl + '" alt="">'
@@ -134,20 +147,82 @@ export async function GET() {
           '</div>' +
           '<div class="bm-title">' + o.title + '</div>' +
           '<div class="bm-desc">' + o.description + '</div>' +
-          '<button class="bm-btn" data-offer-id="' + o.id + '" data-url="' + (o.redeemUrl || '') + '">Get This Perk</button>' +
+          '<button class="bm-btn" data-offer-id="' + o.id + '" data-idx="' + i + '">Get This Perk</button>' +
+          '<div class="bm-form" id="bm-form-' + i + '">' +
+            '<div class="bm-err" id="bm-err-' + i + '" style="display:none;"></div>' +
+            '<div class="bm-form-row">' +
+              '<input class="bm-input" id="bm-fn-' + i + '" placeholder="First name" />' +
+              '<input class="bm-input" id="bm-ln-' + i + '" placeholder="Last name" />' +
+            '</div>' +
+            '<input class="bm-input" id="bm-em-' + i + '" placeholder="Email address" type="email" />' +
+            '<button class="bm-submit" id="bm-sub-' + i + '" data-offer-id="' + o.id + '" data-idx="' + i + '">Send My Perk</button>' +
+          '</div>' +
+          '<div class="bm-sent" id="bm-sent-' + i + '" style="display:none;">Perk sent! Check your email.</div>' +
+          '<div class="bm-sent-sub" id="bm-sent-sub-' + i + '" style="display:none;">Open the link in your email to redeem at the business.</div>' +
         '</div>';
       }).join('');
 
+      // Toggle claim form on "Get This Perk"
       list.querySelectorAll('.bm-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          var offerId = btn.getAttribute('data-offer-id');
-          var url = btn.getAttribute('data-url');
-          fetch(origin + '/api/widget/click', {
+          var idx = btn.getAttribute('data-idx');
+          var form = shadow.getElementById('bm-form-' + idx);
+          form.classList.toggle('show');
+          if (form.classList.contains('show')) {
+            btn.style.display = 'none';
+          }
+        });
+      });
+
+      // Handle form submission
+      list.querySelectorAll('.bm-submit').forEach(function(sub) {
+        sub.addEventListener('click', function() {
+          var idx = sub.getAttribute('data-idx');
+          var offerId = sub.getAttribute('data-offer-id');
+          var fn = shadow.getElementById('bm-fn-' + idx).value.trim();
+          var ln = shadow.getElementById('bm-ln-' + idx).value.trim();
+          var em = shadow.getElementById('bm-em-' + idx).value.trim();
+          var errEl = shadow.getElementById('bm-err-' + idx);
+
+          if (!fn || !ln || !em) {
+            errEl.textContent = 'Please fill in all fields.';
+            errEl.style.display = 'block';
+            return;
+          }
+          if (em.indexOf('@') === -1) {
+            errEl.textContent = 'Please enter a valid email.';
+            errEl.style.display = 'block';
+            return;
+          }
+
+          errEl.style.display = 'none';
+          sub.disabled = true;
+          sub.textContent = 'Sending...';
+
+          fetch(origin + '/api/widget/claim', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ offerId: offerId, propertyApiKey: apiKey })
-          }).catch(function() {});
-          if (url) window.open(url, '_blank');
+            body: JSON.stringify({ offerId: offerId, propertyApiKey: apiKey, firstName: fn, lastName: ln, email: em })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            if (res.success) {
+              shadow.getElementById('bm-form-' + idx).style.display = 'none';
+              shadow.getElementById('bm-sent-' + idx).style.display = 'block';
+              shadow.getElementById('bm-sent-sub-' + idx).style.display = 'block';
+            } else {
+              errEl.textContent = res.error || 'Something went wrong.';
+              errEl.style.display = 'block';
+              sub.disabled = false;
+              sub.textContent = 'Send My Perk';
+            }
+          })
+          .catch(function() {
+            errEl.textContent = 'Something went wrong. Please try again.';
+            errEl.style.display = 'block';
+            sub.disabled = false;
+            sub.textContent = 'Send My Perk';
+          });
         });
       });
     })

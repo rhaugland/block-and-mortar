@@ -54,14 +54,30 @@ export async function GET(
             logoUrl: true,
             lat: true,
             lng: true,
+            budgetCents: true,
           },
         },
       },
     });
 
-    // Filter by radius and budget — match if near ANY location
+    // Get total spent per business (account-level budget check)
+    const businessIds = [...new Set(offers.map((o) => o.business.id))];
+    const spentByBusiness: Record<string, number> = {};
+    if (businessIds.length > 0) {
+      const spentData = await prisma.offer.groupBy({
+        by: ["businessId"],
+        where: { businessId: { in: businessIds } },
+        _sum: { spentCents: true },
+      });
+      for (const row of spentData) {
+        spentByBusiness[row.businessId] = row._sum.spentCents || 0;
+      }
+    }
+
+    // Filter by radius and business budget — match if near ANY location
     const nearby = offers.filter((offer) => {
-      if (offer.spentCents >= offer.budgetCents) return false;
+      const totalSpent = spentByBusiness[offer.business.id] || 0;
+      if (offer.business.budgetCents > 0 && totalSpent >= offer.business.budgetCents) return false;
       return coords.some((loc) => {
         const dist = distanceMiles(loc.lat, loc.lng, offer.business.lat, offer.business.lng);
         return dist <= offer.radiusMiles;

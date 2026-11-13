@@ -435,6 +435,7 @@ export default function PropertyDashboard() {
           Click the {widgetOpen ? "minimize button" : "tab"} to {widgetOpen ? "collapse" : "expand"} the widget
         </p>
       </div>
+
     </div>
   );
 }

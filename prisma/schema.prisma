@@ -34,6 +34,7 @@ model Property {
   locations   Location[]
   impressions Impression[]
   clicks      Click[]
+  redemptions Redemption[]
 }
 
 // ─── Location (individual apartment community) ──────────────────────
@@ -74,12 +75,14 @@ model Business {
   email            String   @unique
   password         String
   stripeCustomerId String?
+  budgetCents      Int       @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   offers      Offer[]
   impressions Impression[]
   clicks      Click[]
+  redemptions Redemption[]
 }
 
 // ─── Offer (Coupon / Deal) ──────────────────────────────────────────
@@ -104,6 +107,7 @@ model Offer {
 
   impressions Impression[]
   clicks      Click[]
+  redemptions Redemption[]
 
   @@index([businessId])
   @@index([active])
@@ -139,6 +143,28 @@ model Click {
   @@index([offerId])
   @@index([propertyId])
   @@index([createdAt])
+}
+
+// ─── Redemption ─────────────────────────────────────────────────
+
+model Redemption {
+  id         String    @id @default(cuid())
+  token      String    @unique @default(cuid())
+  offerId    String
+  offer      Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  firstName  String
+  lastName   String
+  email      String
+  redeemedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([token])
+  @@index([offerId])
+  @@index([email])
 }
 
 // ─── Password Reset ──────────────────────────────────────────────

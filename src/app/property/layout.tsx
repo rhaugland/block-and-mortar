@@ -34,6 +34,12 @@ export default function PropertyLayout({ children }: { children: React.ReactNode
             >
               Dashboard
             </Link>
+            <Link
+              href="/property/dashboard/leads"
+              className={`text-[13px] font-medium transition-colors ${pathname.includes("leads") ? "text-coral" : "text-text-secondary hover:text-text-primary"}`}
+            >
+              Leads
+            </Link>
             <button
               onClick={logout}
               className="text-[13px] font-medium text-text-tertiary transition-colors hover:text-text-secondary"

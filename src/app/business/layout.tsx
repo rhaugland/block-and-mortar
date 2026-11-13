@@ -34,6 +34,12 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
               Dashboard
             </Link>
             <Link
+              href="/business/dashboard/leads"
+              className={`text-[13px] font-medium transition-colors ${pathname.includes("leads") ? "text-coral" : "text-text-secondary hover:text-text-primary"}`}
+            >
+              Leads
+            </Link>
+            <Link
               href="/business/dashboard/new-offer"
               className={`text-[13px] font-medium transition-colors ${pathname.includes("new-offer") ? "text-coral" : "text-text-secondary hover:text-text-primary"}`}
             >

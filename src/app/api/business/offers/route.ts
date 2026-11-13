@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const offers = await prisma.offer.findMany({
       where: { businessId: session.id },
       include: {
-        _count: { select: { impressions: true, clicks: true } },
+        _count: { select: { impressions: true, clicks: true, redemptions: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       expiresAt: o.expiresAt,
       impressions: o._count.impressions,
       clicks: o._count.clicks,
+      redemptions: o._count.redemptions,
     }));
 
     return NextResponse.json(result);
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, imageUrl, radiusMiles, budgetCents, durationDays } = body;
+    const { title, description, imageUrl, radiusMiles, durationDays } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -60,6 +61,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const business = await prisma.business.findUnique({
+      where: { id: session.id },
+      select: { address: true, city: true, state: true },
+    });
+    const autoDesc = business
+      ? `${business.address}, ${business.city}, ${business.state}`
+      : title;
 
     const expiresAt = durationDays
       ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
@@ -69,11 +78,10 @@ export async function POST(req: NextRequest) {
       data: {
         businessId: session.id,
         title,
-        description: description || title,
+        description: description || autoDesc,
         imageUrl: imageUrl || null,
         redeemUrl: null,
         radiusMiles: radiusMiles ?? 3.0,
-        budgetCents: budgetCents ?? 2500,
         cpcCents: 50,
         expiresAt,
       },
