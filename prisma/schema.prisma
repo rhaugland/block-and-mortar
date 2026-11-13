@@ -35,6 +35,7 @@ model Property {
   impressions Impression[]
   clicks      Click[]
   redemptions Redemption[]
+  payouts     Payout[]
 }
 
 // ─── Location (individual apartment community) ──────────────────────
@@ -165,6 +166,26 @@ model Redemption {
   @@index([token])
   @@index([offerId])
   @@index([email])
+}
+
+// ─── Payouts ───────────────────────────────────────────────────────
+
+model Payout {
+  id              String   @id @default(cuid())
+  propertyId      String
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amountCents     Int
+  clickCount      Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  tremendousId    String?
+  tremendousLink  String?
+  status          String   @default("pending") // pending, sent, failed
+  failReason      String?
+  createdAt       DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([status])
 }
 
 // ─── Password Reset ──────────────────────────────────────────────
