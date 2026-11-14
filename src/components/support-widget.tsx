@@ -14,7 +14,7 @@ export function SupportWidget() {
     const body = encodeURIComponent(String(fd.get("message") || ""));
     const email = String(fd.get("email") || "");
     window.open(
-      `mailto:support@blockandmortar.com?subject=${subject}&body=${body}%0A%0AFrom: ${encodeURIComponent(email)}`,
+      `mailto:support@blockandmortar.co?subject=${subject}&body=${body}%0A%0AFrom: ${encodeURIComponent(email)}`,
       "_self"
     );
     setSent(true);

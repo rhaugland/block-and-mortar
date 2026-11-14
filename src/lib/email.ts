@@ -21,7 +21,7 @@ export async function sendEmail({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || "Block & Mortar <noreply@blockandmortar.com>",
+      from: process.env.EMAIL_FROM || "Block & Mortar <support@blockandmortar.co>",
       to,
       subject,
       html,
