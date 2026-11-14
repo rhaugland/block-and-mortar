@@ -4,8 +4,12 @@ import { sendEmail } from "@/lib/email";
 import { buildAdminReport, buildPropertyReport, buildBusinessReport } from "@/lib/report-emails";
 
 export async function POST(req: NextRequest) {
+  // Allow admin session OR cron secret for CLI testing
   const session = getSession(req);
-  if (!session || session.role !== "admin") {
+  const authHeader = req.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  const hasCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  if (!hasCronAuth && (!session || session.role !== "admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
