@@ -28,6 +28,7 @@ model Property {
   widgetLastPing DateTime?
   widgetStyle    Json?
   revSharePct    Float     @default(0.25)
+  monthlyReport  Boolean   @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -77,6 +78,7 @@ model Business {
   password         String
   stripeCustomerId String?
   budgetCents      Int       @default(0)
+  monthlyReport    Boolean   @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

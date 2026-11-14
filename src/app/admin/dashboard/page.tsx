@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { MonthlyReportToggle } from "@/components/monthly-report-toggle";
 
 interface Stats {
   totalProperties: number;
@@ -288,6 +289,11 @@ export default function AdminOverview() {
             <span className="text-[15px] font-semibold text-text-primary">{stats.totalProperties}</span>
           </div>
         </Link>
+      </div>
+
+      {/* Monthly Report Toggle */}
+      <div className="mt-6">
+        <MonthlyReportToggle apiPath="/api/admin/monthly-report" />
       </div>
 
       {/* ── Growth Charts ── */}

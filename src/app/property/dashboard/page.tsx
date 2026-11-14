@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MonthlyReportToggle } from "@/components/monthly-report-toggle";
 
 interface DashboardData {
   property: {
@@ -319,6 +320,11 @@ export default function PropertyDashboard() {
         >
           {copied ? "Copied!" : "Copy snippet"}
         </button>
+      </div>
+
+      {/* Monthly Report Toggle */}
+      <div className="mt-8">
+        <MonthlyReportToggle apiPath="/api/property/monthly-report" />
       </div>
 
       {/* Style Customization */}

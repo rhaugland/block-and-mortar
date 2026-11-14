@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { MonthlyReportToggle } from "@/components/monthly-report-toggle";
 
 interface Offer {
   id: string;
@@ -265,6 +266,11 @@ export default function BusinessDashboard() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Monthly Report Toggle */}
+      <div className="mt-8">
+        <MonthlyReportToggle apiPath="/api/business/monthly-report" />
       </div>
 
       {/* Offers */}
