@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function SupportWidget() {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setUser(data); })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    // Fire-and-forget to a support endpoint (or just mailto for now)
     const subject = encodeURIComponent(String(fd.get("subject") || "Support Request"));
     const body = encodeURIComponent(String(fd.get("message") || ""));
-    const email = String(fd.get("email") || "");
+    const email = user?.email || "";
+    const name = user?.name || "";
     window.open(
-      `mailto:support@blockandmortar.co?subject=${subject}&body=${body}%0A%0AFrom: ${encodeURIComponent(email)}`,
+      `mailto:support@blockandmortar.co?subject=${subject}&body=${body}%0A%0AFrom: ${encodeURIComponent(name)} (${encodeURIComponent(email)})`,
       "_self"
     );
     setSent(true);
@@ -62,15 +70,11 @@ export function SupportWidget() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
-                <div>
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="Your email"
-                    className="w-full rounded-lg border border-glass-border bg-surface px-3 py-2 text-[13px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral"
-                  />
-                </div>
+                {user?.name && (
+                  <p className="text-[12px] text-text-tertiary">
+                    Sending as <span className="font-medium text-text-secondary">{user.name}</span> ({user.email})
+                  </p>
+                )}
                 <div>
                   <input
                     name="subject"
