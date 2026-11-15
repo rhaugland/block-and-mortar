@@ -30,7 +30,7 @@ export async function GET(
     }
 
     if (!property.widgetEnabled) {
-      return NextResponse.json({ offers: [], style: null }, { headers: corsHeaders });
+      return NextResponse.json({ offers: [], style: null, hidden: true }, { headers: corsHeaders });
     }
 
     // Use all locations (fall back to property's own lat/lng if no locations)

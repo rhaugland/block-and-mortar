@@ -118,6 +118,11 @@ export async function GET() {
   fetch(origin + '/api/widget/' + apiKey)
     .then(function(r) { return r.json(); })
     .then(function(data) {
+      if (data.hidden) {
+        host.remove();
+        return;
+      }
+
       var offers = data.offers || data;
       var customStyle = data.style;
 
