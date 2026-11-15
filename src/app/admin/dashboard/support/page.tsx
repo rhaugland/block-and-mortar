@@ -55,6 +55,15 @@ export default function AdminSupportPage() {
     setSending(false);
   };
 
+  const handleClose = async (ticketId: string, reopen = false) => {
+    await fetch("/api/admin/support/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticketId, reopen }),
+    });
+    fetchTickets();
+  };
+
   const filtered = tickets.filter((t) => filter === "all" || t.status === filter);
   const openCount = tickets.filter((t) => t.status === "open").length;
 
@@ -171,13 +180,32 @@ export default function AdminSupportPage() {
                     </div>
                   )}
 
-                  {/* Reply form */}
+                  {/* Actions */}
                   {t.status !== "closed" && !isReplying && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        onClick={() => { setReplyingId(t.id); setReplyText(""); }}
+                        className="rounded-lg bg-coral px-4 py-2 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                      >
+                        {t.reply ? "Reply Again" : "Reply"}
+                      </button>
+                      {t.status === "replied" && (
+                        <button
+                          onClick={() => handleClose(t.id)}
+                          className="rounded-lg border border-glass-border bg-white/60 px-4 py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-white hover:text-text-primary"
+                        >
+                          Close Ticket
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {t.status === "closed" && !isReplying && (
                     <button
-                      onClick={() => { setReplyingId(t.id); setReplyText(""); }}
-                      className="mt-3 rounded-lg bg-coral px-4 py-2 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                      onClick={() => handleClose(t.id, true)}
+                      className="mt-3 rounded-lg border border-glass-border bg-white/60 px-4 py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-white hover:text-text-primary"
                     >
-                      {t.reply ? "Reply Again" : "Reply"}
+                      Reopen Ticket
                     </button>
                   )}
 
