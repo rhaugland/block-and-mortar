@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   const session = getSession(req);
@@ -14,6 +15,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Subject and message are required" }, { status: 400 });
   }
 
+  // Save to database
+  await prisma.supportTicket.create({
+    data: {
+      name: name || "Unknown",
+      email: email || "",
+      role: session.role,
+      subject,
+      message,
+    },
+  });
+
+  // Also email notification
   const supportEmail = process.env.SUPPORT_EMAIL || "support@blockandmortar.co";
 
   await sendEmail({
