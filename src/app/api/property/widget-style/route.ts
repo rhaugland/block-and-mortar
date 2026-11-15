@@ -9,12 +9,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { primaryColor, accentColor, fontFamily, borderRadius } = await req.json();
+    const style = await req.json();
 
     const property = await prisma.property.update({
       where: { id: session.id },
       data: {
-        widgetStyle: { primaryColor, accentColor, fontFamily, borderRadius },
+        widgetStyle: style,
       },
       select: { widgetStyle: true },
     });
