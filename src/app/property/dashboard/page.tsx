@@ -490,15 +490,30 @@ export default function PropertyDashboard() {
                   <span className="text-[13px] font-semibold text-white" style={{ fontFamily: styleTokens.fontFamily }}>A reason to walk the block</span>
                   <button onClick={() => setWidgetOpen(false)} className="text-white/70 text-[15px] hover:text-white transition-colors cursor-pointer leading-none">&#8722;</button>
                 </div>
-                <div className="p-3 space-y-2" style={{ fontFamily: styleTokens.fontFamily }}>
-                  <div className="border border-black/[0.06] p-3" style={{ borderRadius: `max(${parseInt(styleTokens.borderRadius) - 4}px, 4px)`, backgroundColor: styleTokens.cardColor }}>
-                    <p className="text-[12px] font-semibold" style={{ color: styleTokens.textColor }}>20% off your first meal</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: styleTokens.textColor, opacity: 0.6 }}>Corner Bistro &middot; Restaurant</p>
-                  </div>
-                  <div className="border border-black/[0.06] p-3" style={{ borderRadius: `max(${parseInt(styleTokens.borderRadius) - 4}px, 4px)`, backgroundColor: styleTokens.cardColor }}>
-                    <p className="text-[12px] font-semibold" style={{ color: styleTokens.textColor }}>Free week trial</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: styleTokens.textColor, opacity: 0.6 }}>FitBlock Gym &middot; Fitness</p>
-                  </div>
+                <div className="p-2 space-y-2 overflow-y-auto max-h-[320px]" style={{ fontFamily: styleTokens.fontFamily }}>
+                  {[
+                    { emoji: "🍽️", biz: "Corner Bistro", cat: "Restaurant", title: "20% off your first meal", desc: "123 Main St, Minneapolis, MN" },
+                    { emoji: "💪", biz: "FitBlock Gym", cat: "Gym / Fitness", title: "Free week trial", desc: "456 Oak Ave, Minneapolis, MN" },
+                    { emoji: "☕", biz: "Maple Street Coffee", cat: "Cafe", title: "Buy 1 get 1 free latte", desc: "789 Elm St, Minneapolis, MN" },
+                  ].map((o, i) => (
+                    <div key={i} className="border border-black/[0.06] p-3" style={{ borderRadius: `max(${parseInt(styleTokens.borderRadius) - 4}px, 4px)`, backgroundColor: styleTokens.cardColor }}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <div className="h-7 w-7 rounded-md bg-amber-50 flex items-center justify-center text-[14px]">{o.emoji}</div>
+                        <div>
+                          <p className="text-[11px] font-semibold" style={{ color: styleTokens.textColor, opacity: 0.6 }}>{o.biz}</p>
+                          <p className="text-[10px]" style={{ color: styleTokens.textColor, opacity: 0.4 }}>{o.cat}</p>
+                        </div>
+                      </div>
+                      <p className="text-[12px] font-semibold mb-0.5" style={{ color: styleTokens.textColor }}>{o.title}</p>
+                      <p className="text-[10px] leading-snug mb-2" style={{ color: styleTokens.textColor, opacity: 0.5 }}>{o.desc}</p>
+                      <button
+                        className="px-3 py-1 text-[10px] font-semibold text-white rounded-md cursor-default"
+                        style={{ background: `linear-gradient(135deg, ${styleTokens.primaryColor}, ${styleTokens.accentColor})`, borderRadius: `max(${parseInt(styleTokens.borderRadius) - 8}px, 4px)` }}
+                      >
+                        Get This Perk
+                      </button>
+                    </div>
+                  ))}
                 </div>
                 <div className="border-t border-black/[0.06] py-2 text-center text-[10px]" style={{ color: styleTokens.textColor, opacity: 0.4 }}>Powered by Block &amp; Mortar</div>
               </div>
