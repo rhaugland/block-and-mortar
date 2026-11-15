@@ -14,19 +14,24 @@ export function SupportWidget() {
       .catch(() => {});
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     const fd = new FormData(e.currentTarget);
-    const subject = encodeURIComponent(String(fd.get("subject") || "Support Request"));
-    const body = encodeURIComponent(String(fd.get("message") || ""));
-    const email = user?.email || "";
-    const name = user?.name || "";
-    window.open(
-      `mailto:support@blockandmortar.co?subject=${subject}&body=${body}%0A%0AFrom: ${encodeURIComponent(name)} (${encodeURIComponent(email)})`,
-      "_self"
-    );
+    const subject = String(fd.get("subject") || "");
+    const message = String(fd.get("message") || "");
+    try {
+      await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, message, name: user?.name, email: user?.email }),
+      });
+    } catch {}
+    setLoading(false);
     setSent(true);
-    setTimeout(() => { setSent(false); setOpen(false); }, 2000);
+    setTimeout(() => { setSent(false); setOpen(false); }, 3000);
   };
 
   return (
@@ -94,9 +99,10 @@ export function SupportWidget() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full rounded-lg bg-coral py-2.5 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  disabled={loading}
+                  className="w-full rounded-lg bg-coral py-2.5 text-[13px] font-medium text-white shadow-md shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
                 >
-                  Send message
+                  {loading ? "Sending..." : "Send message"}
                 </button>
               </form>
             )}
