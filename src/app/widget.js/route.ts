@@ -210,6 +210,18 @@ export async function GET() {
               shadow.getElementById('bm-form-' + idx).style.display = 'none';
               shadow.getElementById('bm-sent-' + idx).style.display = 'block';
               shadow.getElementById('bm-sent-sub-' + idx).style.display = 'block';
+              setTimeout(function() {
+                shadow.getElementById('bm-sent-' + idx).style.display = 'none';
+                shadow.getElementById('bm-sent-sub-' + idx).style.display = 'none';
+                shadow.getElementById('bm-form-' + idx).classList.remove('show');
+                shadow.getElementById('bm-fn-' + idx).value = '';
+                shadow.getElementById('bm-ln-' + idx).value = '';
+                shadow.getElementById('bm-em-' + idx).value = '';
+                var getBtn = list.querySelectorAll('.bm-btn')[idx];
+                if (getBtn) { getBtn.style.display = 'inline-block'; }
+                sub.disabled = false;
+                sub.textContent = 'Send My Perk';
+              }, 4000);
             } else {
               errEl.textContent = res.error || 'Something went wrong.';
               errEl.style.display = 'block';
