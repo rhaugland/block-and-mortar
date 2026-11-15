@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
   await sendEmail({
     to: supportEmail,
     subject: `[Support] ${subject}`,
+    replyTo: email || undefined,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px;">
         <div style="background: linear-gradient(135deg, #ff6b5b, #fb923c); padding: 20px 24px; border-radius: 12px 12px 0 0;">
