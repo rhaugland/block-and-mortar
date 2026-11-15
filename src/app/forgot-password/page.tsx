@@ -26,6 +26,7 @@ function ForgotPasswordForm() {
     });
     setSent(true);
     setLoading(false);
+    setTimeout(() => { setSent(false); setEmail(""); }, 4000);
   };
 
   return (
@@ -52,20 +53,12 @@ function ForgotPasswordForm() {
             <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
               If an account exists for <span className="font-medium text-text-primary">{email}</span>, we&apos;ve sent a password reset link. It expires in 1 hour.
             </p>
-            <div className="mt-6 flex items-center gap-4">
-              <Link
-                href={role === "property" ? "/property/login" : "/business/login"}
-                className="text-[13px] font-medium text-coral hover:text-peach"
-              >
-                Back to sign in
-              </Link>
-              <button
-                onClick={() => { setSent(false); setEmail(""); }}
-                className="text-[13px] font-medium text-text-tertiary hover:text-text-primary"
-              >
-                Try a different email
-              </button>
-            </div>
+            <Link
+              href={role === "property" ? "/property/login" : "/business/login"}
+              className="mt-6 inline-block text-[13px] font-medium text-coral hover:text-peach"
+            >
+              Back to sign in
+            </Link>
           </div>
         ) : (
           <>
