@@ -230,6 +230,21 @@ model SupportTicket {
   @@index([createdAt])
 }
 
+// ─── Outbound Emails ────────────────────────────────────────────
+
+model OutboundEmail {
+  id        String   @id @default(cuid())
+  toEmail   String
+  toName    String?
+  subject   String
+  body      String
+  status    String   @default("sent") // sent, failed
+  createdAt DateTime @default(now())
+
+  @@index([toEmail])
+  @@index([createdAt])
+}
+
 // ─── Password Reset ──────────────────────────────────────────────
 
 model PasswordReset {
