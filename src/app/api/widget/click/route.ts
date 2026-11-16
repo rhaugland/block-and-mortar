@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkBudgetAlert } from "@/lib/budget-alert";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +51,9 @@ export async function POST(req: NextRequest) {
         data: { spentCents: { increment: offer.cpcCents } },
       }),
     ]);
+
+    // Check budget alerts (fire-and-forget)
+    checkBudgetAlert(offer.business.id).catch(() => {});
 
     return NextResponse.json(
       { success: true, redeemUrl: offer.redeemUrl },

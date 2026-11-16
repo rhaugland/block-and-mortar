@@ -78,6 +78,7 @@ model Business {
   password         String
   stripeCustomerId String?
   budgetCents      Int       @default(0)
+  budgetAlertSent  Int       @default(0) // last threshold notified: 0, 80, 90, 95
   monthlyReport    Boolean   @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
