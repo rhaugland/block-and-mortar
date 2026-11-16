@@ -19,6 +19,7 @@ export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "open" | "replied" | "closed">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | "property" | "business">("all");
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
@@ -64,7 +65,10 @@ export default function AdminSupportPage() {
     fetchTickets();
   };
 
-  const filtered = tickets.filter((t) => filter === "all" || t.status === filter);
+  const filtered = tickets.filter((t) =>
+    (filter === "all" || t.status === filter) &&
+    (roleFilter === "all" || t.role === roleFilter)
+  );
   const openCount = tickets.filter((t) => t.status === "open").length;
 
   if (loading) {
@@ -86,25 +90,57 @@ export default function AdminSupportPage() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="mt-6 flex gap-1.5">
-        {(["all", "open", "replied", "closed"] as const).map((f) => {
-          const count = f === "all" ? tickets.length : tickets.filter((t) => t.status === f).length;
-          return (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-                filter === f
-                  ? "bg-coral/10 text-coral"
-                  : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-              <span className="ml-1.5 text-[11px] opacity-60">{count}</span>
-            </button>
-          );
-        })}
+      {/* Filters */}
+      <div className="mt-6 flex items-center gap-6">
+        {/* Status filter */}
+        <div className="flex gap-1.5">
+          {(["all", "open", "replied", "closed"] as const).map((f) => {
+            const count = f === "all" ? tickets.length : tickets.filter((t) => t.status === f).length;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                  filter === f
+                    ? "bg-coral/10 text-coral"
+                    : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
+                }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+                <span className="ml-1.5 text-[11px] opacity-60">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="h-5 w-px bg-glass-border" />
+
+        {/* Role filter */}
+        <div className="flex gap-1.5">
+          {([
+            { key: "all" as const, label: "Everyone" },
+            { key: "property" as const, label: "Properties" },
+            { key: "business" as const, label: "Businesses" },
+          ]).map(({ key, label }) => {
+            const count = key === "all" ? tickets.length : tickets.filter((t) => t.role === key).length;
+            return (
+              <button
+                key={key}
+                onClick={() => setRoleFilter(key)}
+                className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                  roleFilter === key
+                    ? key === "property" ? "bg-blue-50 text-blue-600"
+                    : key === "business" ? "bg-amber-50 text-amber-700"
+                    : "bg-coral/10 text-coral"
+                    : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
+                }`}
+              >
+                {label}
+                <span className="ml-1.5 text-[11px] opacity-60">{count}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tickets */}
