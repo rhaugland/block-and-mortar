@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createAndChargeInvoice } from "@/lib/stripe";
+import { createAndChargeInvoice, PLATFORM_FEE_CENTS } from "@/lib/stripe";
 import { sendVisaReward } from "@/lib/tremendous";
 
 // Vercel Cron calls this with Authorization: Bearer <CRON_SECRET>
@@ -48,11 +48,6 @@ export async function GET(req: NextRequest) {
       select: { offerId: true },
     });
 
-    if (clicks.length === 0) {
-      businessResults.push({ businessId: biz.id, name: biz.name, amountCents: 0, status: "skipped" });
-      continue;
-    }
-
     // Group clicks by offer to calculate per-offer CPC
     const clicksByOffer: Record<string, number> = {};
     for (const c of clicks) {
@@ -61,33 +56,34 @@ export async function GET(req: NextRequest) {
 
     // Get CPC rates for each offer
     const offerIds = Object.keys(clicksByOffer);
-    const offers = await prisma.offer.findMany({
-      where: { id: { in: offerIds } },
-      select: { id: true, cpcCents: true },
-    });
+    const offers = offerIds.length > 0
+      ? await prisma.offer.findMany({
+          where: { id: { in: offerIds } },
+          select: { id: true, cpcCents: true },
+        })
+      : [];
 
     const cpcMap: Record<string, number> = {};
     for (const o of offers) cpcMap[o.id] = o.cpcCents;
 
-    // Calculate total charge
-    let totalCents = 0;
+    // Calculate click charges
+    let clickCents = 0;
     for (const [offerId, count] of Object.entries(clicksByOffer)) {
-      totalCents += count * (cpcMap[offerId] || 50);
+      clickCents += count * (cpcMap[offerId] || 50);
     }
 
-    if (totalCents < 100) {
-      businessResults.push({ businessId: biz.id, name: biz.name, amountCents: totalCents, status: "below_minimum" });
-      continue;
-    }
+    // Total = platform fee + click charges
+    const totalCents = PLATFORM_FEE_CENTS + clickCents;
 
-    // Create Stripe invoice
+    // Create Stripe invoice (always includes platform fee)
     const result = await createAndChargeInvoice({
       customerId: biz.stripeCustomerId!,
       businessName: biz.name,
-      amountCents: totalCents,
+      amountCents: clickCents,
       clickCount: clicks.length,
       periodStart,
       periodEnd,
+      includePlatformFee: true,
     });
 
     // Record invoice in DB

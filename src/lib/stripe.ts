@@ -14,6 +14,8 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
+export const PLATFORM_FEE_CENTS = 1000; // $10/mo platform access fee
+
 interface CreateInvoiceParams {
   customerId: string;
   businessName: string;
@@ -21,12 +23,14 @@ interface CreateInvoiceParams {
   clickCount: number;
   periodStart: Date;
   periodEnd: Date;
+  includePlatformFee?: boolean;
 }
 
 interface InvoiceResult {
   success: boolean;
   invoiceId?: string;
   hostedUrl?: string;
+  totalCents?: number;
   error?: string;
 }
 
@@ -37,13 +41,14 @@ export async function createAndChargeInvoice({
   clickCount,
   periodStart,
   periodEnd,
+  includePlatformFee = true,
 }: CreateInvoiceParams): Promise<InvoiceResult> {
   const stripe = getStripe();
 
   try {
     const periodLabel = `${periodStart.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
 
-    // Create invoice with a line item
+    // Create invoice
     const invoice = await stripe.invoices.create({
       customer: customerId,
       collection_method: "charge_automatically",
@@ -51,14 +56,29 @@ export async function createAndChargeInvoice({
       metadata: { businessName, clickCount: String(clickCount) },
     });
 
-    // Add line item for click charges
-    await stripe.invoiceItems.create({
-      customer: customerId,
-      invoice: invoice.id,
-      amount: amountCents,
-      currency: "usd",
-      description: `Block & Mortar — ${clickCount} claims × $${(amountCents / clickCount / 100).toFixed(2)} avg CPC (${periodLabel})`,
-    });
+    // Platform access fee
+    if (includePlatformFee) {
+      await stripe.invoiceItems.create({
+        customer: customerId,
+        invoice: invoice.id,
+        amount: PLATFORM_FEE_CENTS,
+        currency: "usd",
+        description: `Block & Mortar — Platform Access Fee (${periodLabel})`,
+      });
+    }
+
+    // Click charges (if any)
+    if (amountCents > 0 && clickCount > 0) {
+      await stripe.invoiceItems.create({
+        customer: customerId,
+        invoice: invoice.id,
+        amount: amountCents,
+        currency: "usd",
+        description: `Block & Mortar — ${clickCount} claims × $${(amountCents / clickCount / 100).toFixed(2)} avg CPC (${periodLabel})`,
+      });
+    }
+
+    const totalCents = amountCents + (includePlatformFee ? PLATFORM_FEE_CENTS : 0);
 
     // Finalize and attempt payment
     const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
@@ -68,6 +88,7 @@ export async function createAndChargeInvoice({
       success: paid.status === "paid",
       invoiceId: paid.id,
       hostedUrl: paid.hosted_invoice_url || undefined,
+      totalCents,
       error: paid.status !== "paid" ? `Invoice status: ${paid.status}` : undefined,
     };
   } catch (err) {
