@@ -31,50 +31,70 @@ export async function POST(req: NextRequest) {
     fromName = fromRaw.name || null;
   }
 
-  // Fetch full email content from Resend API using email_id
+  // Try multiple approaches to get email body
   let bodyText: string | null = null;
   let bodyHtml: string | null = null;
   let debugInfo = "";
+  const resendKey = process.env.RESEND_API_KEY;
 
-  if (emailId) {
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
+  // Approach 1: Check if body is in the webhook payload directly (some Resend versions include it)
+  bodyHtml = data.html || data.body?.html || data.body_html || null;
+  bodyText = data.text || data.body?.text || data.text_body || data.plain || data.body_text || null;
+
+  // Approach 2: If not in webhook, try fetching from Resend inbound API
+  if (!bodyHtml && !bodyText && emailId && resendKey) {
+    // Try /inbound-emails/{id} first (Resend's inbound-specific endpoint)
+    const endpoints = [
+      `https://api.resend.com/inbound-emails/${emailId}`,
+      `https://api.resend.com/emails/${emailId}`,
+    ];
+
+    for (const url of endpoints) {
       try {
-        const res = await fetch(`https://api.resend.com/emails/${emailId}`, {
+        const res = await fetch(url, {
           headers: { Authorization: `Bearer ${resendKey}` },
         });
-        const responseText = await res.text();
-        debugInfo = `[status:${res.status}] ${responseText.slice(0, 500)}`;
-
+        const text = await res.text();
         if (res.ok) {
           try {
-            const emailData = JSON.parse(responseText);
-            bodyHtml = emailData.html || emailData.body?.html || null;
-            bodyText = emailData.text || emailData.body?.text || emailData.body || null;
-            // If still nothing, dump all keys so we can find the content
-            if (!bodyHtml && !bodyText) {
-              debugInfo = `[keys: ${Object.keys(emailData).join(",")}] ${responseText.slice(0, 800)}`;
+            const emailData = JSON.parse(text);
+            bodyHtml = emailData.html || emailData.body?.html || emailData.body || null;
+            bodyText = emailData.text || emailData.body?.text || null;
+            if (bodyHtml || bodyText) {
+              debugInfo = `[fetched from ${url}]`;
+              break;
             }
-          } catch { /* parse error */ }
+            // Dump the response so we can see what fields exist
+            debugInfo += `[${url} keys:${Object.keys(emailData).join(",")}] `;
+          } catch { debugInfo += `[${url} parse error] `; }
+        } else {
+          debugInfo += `[${url} ${res.status}] `;
         }
       } catch (err) {
-        debugInfo = `[error] ${String(err)}`;
+        debugInfo += `[${url} error:${String(err).slice(0, 100)}] `;
       }
-    } else {
-      debugInfo = "[no RESEND_API_KEY]";
     }
-  } else {
-    debugInfo = "[no email_id]";
   }
 
-  // Store debug info as bodyText fallback if no content found
-  const finalText = bodyText || debugInfo || null;
+  // Approach 3: Check all top-level payload keys for body content
+  if (!bodyHtml && !bodyText) {
+    // Dump all data keys and values for debugging
+    const allKeys = Object.keys(data);
+    const preview: Record<string, string> = {};
+    for (const k of allKeys) {
+      const v = data[k];
+      if (typeof v === "string" && v.length > 20) {
+        preview[k] = v.slice(0, 100);
+      }
+    }
+    debugInfo += ` [dataKeys:${allKeys.join(",")}] [longValues:${JSON.stringify(preview)}]`;
+  }
+
+  const finalText = bodyText || (debugInfo ? debugInfo.trim() : null);
 
   await prisma.inboundEmail.create({
     data: { fromEmail, fromName, subject, bodyText: finalText, bodyHtml },
   });
-
-  console.log(`[INBOUND] Stored email from ${fromEmail}: ${subject}`);
 
   return NextResponse.json({ received: true });
 }
