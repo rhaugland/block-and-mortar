@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
   // Fetch full email content from Resend API using email_id
   let bodyText: string | null = null;
   let bodyHtml: string | null = null;
+  let debugInfo = "";
 
   if (emailId) {
     const resendKey = process.env.RESEND_API_KEY;
@@ -42,22 +43,35 @@ export async function POST(req: NextRequest) {
         const res = await fetch(`https://api.resend.com/emails/${emailId}`, {
           headers: { Authorization: `Bearer ${resendKey}` },
         });
+        const responseText = await res.text();
+        debugInfo = `[status:${res.status}] ${responseText.slice(0, 500)}`;
+
         if (res.ok) {
-          const emailData = await res.json();
-          bodyHtml = emailData.html || null;
-          bodyText = emailData.text || emailData.body || null;
-          console.log("[INBOUND] Fetched email content, hasHtml:", !!bodyHtml, "hasText:", !!bodyText);
-        } else {
-          console.log("[INBOUND] Failed to fetch email:", res.status, await res.text());
+          try {
+            const emailData = JSON.parse(responseText);
+            bodyHtml = emailData.html || emailData.body?.html || null;
+            bodyText = emailData.text || emailData.body?.text || emailData.body || null;
+            // If still nothing, dump all keys so we can find the content
+            if (!bodyHtml && !bodyText) {
+              debugInfo = `[keys: ${Object.keys(emailData).join(",")}] ${responseText.slice(0, 800)}`;
+            }
+          } catch { /* parse error */ }
         }
       } catch (err) {
-        console.log("[INBOUND] Error fetching email:", err);
+        debugInfo = `[error] ${String(err)}`;
       }
+    } else {
+      debugInfo = "[no RESEND_API_KEY]";
     }
+  } else {
+    debugInfo = "[no email_id]";
   }
 
+  // Store debug info as bodyText fallback if no content found
+  const finalText = bodyText || debugInfo || null;
+
   await prisma.inboundEmail.create({
-    data: { fromEmail, fromName, subject, bodyText, bodyHtml },
+    data: { fromEmail, fromName, subject, bodyText: finalText, bodyHtml },
   });
 
   console.log(`[INBOUND] Stored email from ${fromEmail}: ${subject}`);
