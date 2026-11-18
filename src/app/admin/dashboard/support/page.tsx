@@ -91,15 +91,15 @@ export default function AdminSupportPage() {
       </div>
 
       {/* Filters */}
-      <div className="mt-6 flex items-center gap-6">
-        {/* Status filter */}
+      <div className="mt-6 flex items-center gap-3">
+        {/* Status tabs */}
         <div className="flex gap-1.5">
-          {(["all", "open", "replied", "closed"] as const).map((f) => {
-            const count = f === "all" ? tickets.length : tickets.filter((t) => t.status === f).length;
+          {(["open", "replied", "closed"] as const).map((f) => {
+            const count = tickets.filter((t) => t.status === f).length;
             return (
               <button
                 key={f}
-                onClick={() => setFilter(f)}
+                onClick={() => setFilter(filter === f ? "all" : f)}
                 className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                   filter === f
                     ? "bg-coral/10 text-coral"
@@ -115,31 +115,29 @@ export default function AdminSupportPage() {
 
         <div className="h-5 w-px bg-glass-border" />
 
-        {/* Role filter */}
-        <div className="flex gap-1.5">
+        {/* Role filter icons */}
+        <div className="flex gap-1">
           {([
-            { key: "all" as const, label: "Everyone" },
-            { key: "property" as const, label: "Properties" },
-            { key: "business" as const, label: "Businesses" },
-          ]).map(({ key, label }) => {
-            const count = key === "all" ? tickets.length : tickets.filter((t) => t.role === key).length;
-            return (
-              <button
-                key={key}
-                onClick={() => setRoleFilter(key)}
-                className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-                  roleFilter === key
-                    ? key === "property" ? "bg-blue-50 text-blue-600"
-                    : key === "business" ? "bg-amber-50 text-amber-700"
-                    : "bg-coral/10 text-coral"
-                    : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
-                }`}
-              >
-                {label}
-                <span className="ml-1.5 text-[11px] opacity-60">{count}</span>
-              </button>
-            );
-          })}
+            { key: "property" as const, icon: (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 14V6l6-4 6 4v8H2z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 14v-4h4v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            ), title: "Properties" },
+            { key: "business" as const, icon: (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 14V5h12v9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 5V3h8v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 8h2v2H5zM9 8h2v2H9zM5 11h2v2H5zM9 11h2v2H9z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            ), title: "Businesses" },
+          ]).map(({ key, icon, title }) => (
+            <button
+              key={key}
+              onClick={() => setRoleFilter(roleFilter === key ? "all" : key)}
+              title={title}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                roleFilter === key
+                  ? key === "property" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-700"
+                  : "text-text-tertiary hover:bg-white/60 hover:text-text-primary"
+              }`}
+            >
+              {icon}
+            </button>
+          ))}
         </div>
       </div>
 
