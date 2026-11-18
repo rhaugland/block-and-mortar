@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 
 interface SentEmail {
   id: string;
@@ -25,14 +25,32 @@ interface ReceivedEmail {
   createdAt: string;
 }
 
+interface ThreadMessage {
+  id: string;
+  direction: "sent" | "received";
+  subject: string;
+  bodyHtml: string | null;
+  bodyText: string | null;
+  read: boolean;
+  status?: string;
+  createdAt: string;
+}
+
+interface Thread {
+  email: string;
+  name: string;
+  messages: ThreadMessage[];
+  lastActivity: string;
+  hasUnread: boolean;
+  unreadCount: number;
+}
+
 export default function AdminEmailsPage() {
   const [sent, setSent] = useState<SentEmail[]>([]);
   const [received, setReceived] = useState<ReceivedEmail[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"sent" | "received">("received");
   const [composing, setComposing] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [openThreadEmail, setOpenThreadEmail] = useState<string | null>(null);
 
   // Compose form
   const [toEmail, setToEmail] = useState("");
@@ -52,13 +70,71 @@ export default function AdminEmailsPage() {
       .then((data) => {
         setSent(data.sent || []);
         setReceived(data.received || []);
-        setUnreadCount(data.unreadCount || 0);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { fetchEmails(); }, [fetchEmails]);
+
+  // Build threads grouped by email address
+  const threads = useMemo(() => {
+    const map = new Map<string, Thread>();
+
+    for (const s of sent) {
+      const key = s.toEmail.toLowerCase();
+      if (!map.has(key)) {
+        const name = [s.toFirstName, s.toLastName].filter(Boolean).join(" ");
+        map.set(key, { email: key, name, messages: [], lastActivity: s.createdAt, hasUnread: false, unreadCount: 0 });
+      }
+      const t = map.get(key)!;
+      if (!t.name) t.name = [s.toFirstName, s.toLastName].filter(Boolean).join(" ");
+      t.messages.push({
+        id: s.id,
+        direction: "sent",
+        subject: s.subject,
+        bodyHtml: s.bodyHtml,
+        bodyText: s.body,
+        read: true,
+        status: s.status,
+        createdAt: s.createdAt,
+      });
+    }
+
+    for (const r of received) {
+      const key = r.fromEmail.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, { email: key, name: r.fromName || "", messages: [], lastActivity: r.createdAt, hasUnread: false, unreadCount: 0 });
+      }
+      const t = map.get(key)!;
+      if (!t.name && r.fromName) t.name = r.fromName;
+      t.messages.push({
+        id: r.id,
+        direction: "received",
+        subject: r.subject,
+        bodyHtml: r.bodyHtml,
+        bodyText: r.bodyText,
+        read: r.read,
+        createdAt: r.createdAt,
+      });
+      if (!r.read) {
+        t.hasUnread = true;
+        t.unreadCount++;
+      }
+    }
+
+    // Sort messages within each thread chronologically
+    for (const t of map.values()) {
+      t.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      t.lastActivity = t.messages[t.messages.length - 1]?.createdAt || t.lastActivity;
+    }
+
+    // Sort threads by most recent activity
+    return Array.from(map.values()).sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime());
+  }, [sent, received]);
+
+  const totalUnread = threads.reduce((sum, t) => sum + t.unreadCount, 0);
+  const openThread = openThreadEmail ? threads.find((t) => t.email === openThreadEmail) : null;
 
   const markRead = async (emailId: string) => {
     await fetch("/api/admin/emails/read", {
@@ -67,7 +143,14 @@ export default function AdminEmailsPage() {
       body: JSON.stringify({ emailId }),
     });
     setReceived((prev) => prev.map((e) => e.id === emailId ? { ...e, read: true } : e));
-    setUnreadCount((c) => Math.max(0, c - 1));
+  };
+
+  const markThreadRead = (thread: Thread) => {
+    for (const m of thread.messages) {
+      if (m.direction === "received" && !m.read) {
+        markRead(m.id);
+      }
+    }
   };
 
   const execCommand = (cmd: string, value?: string) => {
@@ -115,6 +198,75 @@ export default function AdminEmailsPage() {
     );
   }
 
+  // Thread detail view
+  if (openThread) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-10">
+        {/* Back + header */}
+        <div className="mb-6 flex items-center gap-4">
+          <button
+            onClick={() => setOpenThreadEmail(null)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-glass-border bg-white/60 text-text-tertiary transition-all hover:bg-white hover:text-text-primary hover:shadow-sm"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <div>
+            <h1 className="text-[20px] font-semibold tracking-[-0.02em] text-text-primary">
+              {openThread.name || openThread.email}
+            </h1>
+            {openThread.name && (
+              <p className="text-[13px] text-text-tertiary">{openThread.email}</p>
+            )}
+          </div>
+          <span className="ml-auto text-[12px] text-text-tertiary">
+            {openThread.messages.length} message{openThread.messages.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Messages */}
+        <div className="space-y-4">
+          {openThread.messages.map((m) => (
+            <div
+              key={m.id}
+              className={`rounded-2xl border p-5 backdrop-blur-sm ${
+                m.direction === "sent"
+                  ? "border-coral/15 bg-coral/5 ml-8"
+                  : "border-glass-border bg-white/70 mr-8"
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    m.direction === "sent"
+                      ? "bg-coral/15 text-coral"
+                      : "bg-blue-50 text-blue-600"
+                  }`}>
+                    {m.direction === "sent" ? "You" : openThread.name || openThread.email}
+                  </span>
+                  <span className="text-[11px] text-text-tertiary">
+                    {new Date(m.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </span>
+                </div>
+                {m.direction === "sent" && m.status === "failed" && (
+                  <span className="text-[11px] font-medium text-red-500">Failed</span>
+                )}
+              </div>
+              {m.subject && (
+                <p className="mb-1.5 text-[12px] font-semibold text-text-secondary">{m.subject}</p>
+              )}
+              {m.bodyHtml ? (
+                <div className="text-[13px] text-text-primary leading-relaxed [&_a]:text-coral [&_a]:underline [&_img]:max-w-full [&_img]:rounded-lg" dangerouslySetInnerHTML={{ __html: m.bodyHtml }} />
+              ) : (
+                <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">{m.bodyText}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Inbox view — thread list
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <div className="flex items-center justify-between">
@@ -122,6 +274,11 @@ export default function AdminEmailsPage() {
           <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-text-primary">Emails</h1>
           <p className="mt-1 text-[15px] text-text-secondary">
             ryan@blockandmortar.co
+            {totalUnread > 0 && (
+              <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-coral px-1.5 text-[11px] font-bold text-white">
+                {totalUnread}
+              </span>
+            )}
           </p>
         </div>
         {!composing && (
@@ -198,7 +355,6 @@ export default function AdminEmailsPage() {
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[12px] font-medium text-text-tertiary">Message</label>
                   <div className="flex items-center gap-1">
-                    {/* Merge tags */}
                     <button
                       onClick={() => insertMergeTag("{{first_name}}")}
                       title="Insert first name"
@@ -214,7 +370,6 @@ export default function AdminEmailsPage() {
                       {"{{last_name}}"}
                     </button>
                     <div className="mx-1 h-4 w-px bg-glass-border" />
-                    {/* Formatting toolbar */}
                     <button onClick={() => execCommand("bold")} title="Bold" className="flex h-7 w-7 items-center justify-center rounded text-text-tertiary hover:bg-white/80 hover:text-text-primary transition-colors">
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 2.5h4a2.5 2.5 0 010 5H3.5V2.5zM3.5 7.5h5a2.5 2.5 0 010 5H3.5V7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
@@ -230,7 +385,6 @@ export default function AdminEmailsPage() {
                   </div>
                 </div>
 
-                {/* Rich text editor */}
                 <div
                   ref={editorRef}
                   contentEditable
@@ -257,136 +411,72 @@ export default function AdminEmailsPage() {
         </div>
       )}
 
-      {/* Sent / Received toggle */}
-      <div className="mt-6 flex items-center gap-3">
-        <div className="flex gap-1.5">
-          <button
-            onClick={() => setTab("received")}
-            className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-              tab === "received" ? "bg-coral/10 text-coral" : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
-            }`}
-          >
-            Received
-            {unreadCount > 0 && (
-              <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-coral px-1 text-[10px] font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setTab("sent")}
-            className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-              tab === "sent" ? "bg-coral/10 text-coral" : "text-text-secondary hover:bg-white/60 hover:text-text-primary"
-            }`}
-          >
-            Sent
-            <span className="ml-1.5 text-[11px] opacity-60">{sent.length}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Email list */}
-      <div className="mt-4 space-y-2.5">
-        {tab === "received" && received.length === 0 && (
+      {/* Thread list */}
+      <div className="mt-6 space-y-2">
+        {threads.length === 0 && !composing && (
           <div className="rounded-2xl border border-glass-border bg-white/70 p-12 text-center backdrop-blur-sm">
-            <p className="text-[15px] text-text-tertiary">No replies received yet.</p>
-            <p className="mt-1 text-[12px] text-text-tertiary">When someone replies to your outreach, it will show up here.</p>
-          </div>
-        )}
-
-        {tab === "sent" && sent.length === 0 && (
-          <div className="rounded-2xl border border-glass-border bg-white/70 p-12 text-center backdrop-blur-sm">
-            <p className="text-[15px] text-text-tertiary">No emails sent yet.</p>
+            <p className="text-[15px] text-text-tertiary">No conversations yet.</p>
             <button
               onClick={() => setComposing(true)}
               className="mt-3 text-[13px] font-medium text-coral hover:text-peach transition-colors"
             >
-              Send your first one
+              Send your first email
             </button>
           </div>
         )}
 
-        {/* Received emails */}
-        {tab === "received" && received.map((e) => {
-          const isExpanded = expandedId === e.id;
-          return (
-            <div key={e.id} className={`rounded-2xl border backdrop-blur-sm transition-all hover:shadow-sm ${!e.read ? "border-coral/20 bg-white/80" : "border-glass-border bg-white/70"}`}>
-              <button
-                onClick={() => {
-                  setExpandedId(isExpanded ? null : e.id);
-                  if (!e.read) markRead(e.id);
-                }}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left"
-              >
-                {!e.read && <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-coral" />}
-                {e.read && <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300" />}
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-[14px] ${!e.read ? "font-bold text-text-primary" : "font-semibold text-text-primary"}`}>{e.subject}</p>
-                  <p className="mt-0.5 text-[12px] text-text-tertiary">
-                    From: {e.fromName ? `${e.fromName} (${e.fromEmail})` : e.fromEmail} &middot; {new Date(e.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                  </p>
-                </div>
-                <svg
-                  width="16" height="16" viewBox="0 0 16 16" fill="none"
-                  className={`shrink-0 text-text-tertiary transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                >
-                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              {isExpanded && (
-                <div className="border-t border-glass-border px-5 py-4">
-                  {e.bodyHtml ? (
-                    <div className="rounded-xl bg-surface/60 px-4 py-3 text-[13px] text-text-primary leading-relaxed [&_a]:text-coral [&_a]:underline" dangerouslySetInnerHTML={{ __html: e.bodyHtml }} />
-                  ) : (
-                    <div className="rounded-xl bg-surface/60 px-4 py-3">
-                      <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">{e.bodyText}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {threads.map((t) => {
+          const lastMsg = t.messages[t.messages.length - 1];
+          const lastPreview = lastMsg.bodyText?.slice(0, 80) || lastMsg.bodyHtml?.replace(/<[^>]*>/g, "").slice(0, 80) || "";
+          const lastDirection = lastMsg.direction;
 
-        {/* Sent emails */}
-        {tab === "sent" && sent.map((e) => {
-          const isExpanded = expandedId === e.id;
-          const displayName = [e.toFirstName, e.toLastName].filter(Boolean).join(" ");
           return (
-            <div key={e.id} className="rounded-2xl border border-glass-border bg-white/70 backdrop-blur-sm transition-all hover:shadow-sm">
-              <button
-                onClick={() => setExpandedId(isExpanded ? null : e.id)}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left"
-              >
-                <span className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${e.status === "sent" ? "bg-green-500" : "bg-red-400"}`} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-semibold text-text-primary">{e.subject}</p>
-                  <p className="mt-0.5 text-[12px] text-text-tertiary">
-                    To: {displayName ? `${displayName} (${e.toEmail})` : e.toEmail} &middot; {new Date(e.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+            <button
+              key={t.email}
+              onClick={() => { setOpenThreadEmail(t.email); markThreadRead(t); }}
+              className={`flex w-full items-center gap-4 rounded-2xl border px-5 py-4 text-left backdrop-blur-sm transition-all hover:shadow-sm ${
+                t.hasUnread ? "border-coral/20 bg-white/80" : "border-glass-border bg-white/70"
+              }`}
+            >
+              {/* Avatar */}
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[14px] font-bold ${
+                t.hasUnread ? "bg-coral/15 text-coral" : "bg-surface text-text-tertiary"
+              }`}>
+                {(t.name || t.email).charAt(0).toUpperCase()}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className={`truncate text-[14px] ${t.hasUnread ? "font-bold text-text-primary" : "font-semibold text-text-primary"}`}>
+                    {t.name || t.email}
                   </p>
-                </div>
-                <svg
-                  width="16" height="16" viewBox="0 0 16 16" fill="none"
-                  className={`shrink-0 text-text-tertiary transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                >
-                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              {isExpanded && (
-                <div className="border-t border-glass-border px-5 py-4">
-                  {e.bodyHtml ? (
-                    <div className="rounded-xl bg-surface/60 px-4 py-3 text-[13px] text-text-primary leading-relaxed [&_a]:text-coral [&_a]:underline" dangerouslySetInnerHTML={{ __html: e.bodyHtml }} />
-                  ) : (
-                    <div className="rounded-xl bg-surface/60 px-4 py-3">
-                      <p className="text-[13px] text-text-primary leading-relaxed whitespace-pre-wrap">{e.body}</p>
-                    </div>
+                  {t.unreadCount > 0 && (
+                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-coral px-1 text-[10px] font-bold text-white">
+                      {t.unreadCount}
+                    </span>
                   )}
-                  {e.status === "failed" && (
-                    <p className="mt-2 text-[12px] text-red-500 font-medium">Failed to send</p>
-                  )}
+                  <span className="ml-auto shrink-0 text-[11px] text-text-tertiary">
+                    {new Date(t.lastActivity).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
                 </div>
-              )}
-            </div>
+                <p className="mt-0.5 truncate text-[12px] text-text-tertiary">
+                  {t.name ? t.email : ""}
+                </p>
+                <p className="mt-0.5 truncate text-[12px] text-text-secondary">
+                  <span className="text-text-tertiary">{lastDirection === "sent" ? "You: " : ""}</span>
+                  {lastPreview}
+                  {lastPreview.length >= 80 ? "..." : ""}
+                </p>
+              </div>
+
+              {/* Message count */}
+              <span className="shrink-0 text-[11px] text-text-tertiary">
+                {t.messages.length}
+              </span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-text-tertiary">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           );
         })}
       </div>
