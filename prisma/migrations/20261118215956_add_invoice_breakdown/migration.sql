@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Invoice" ADD COLUMN     "boostCents" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "clickCents" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "emailSentAt" TIMESTAMP(3);

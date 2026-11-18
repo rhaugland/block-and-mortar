@@ -101,10 +101,12 @@ export async function GET(req: NextRequest) {
     });
 
     // Record invoice in DB
-    await prisma.invoice.create({
+    const savedInvoice = await prisma.invoice.create({
       data: {
         businessId: biz.id,
         amountCents: totalCents,
+        clickCents: clickCents,
+        boostCents: boostCents,
         clickCount: clicks.length,
         periodStart,
         periodEnd,
@@ -114,6 +116,69 @@ export async function GET(req: NextRequest) {
         failReason: result.error || null,
       },
     });
+
+    // Send billing summary email
+    if (result.success && process.env.RESEND_API_KEY) {
+      const periodLabel = periodStart.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const boostCount = boosts.length;
+      try {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: process.env.ADMIN_FROM_EMAIL || "Block & Mortar <ryan@blockandmortar.co>",
+            to: biz.email,
+            subject: `Your Block & Mortar statement — ${periodLabel}`,
+            reply_to: "ryan@blockandmortar.co",
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; color: #1c1917;">
+                <div style="margin-bottom: 24px;">
+                  <img src="https://www.blockandmortar.co/api/logo" alt="Block &amp; Mortar" width="140" height="28" style="display:block;" />
+                </div>
+                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 4px;">Monthly Statement</h2>
+                <p style="font-size: 14px; color: #78716c; margin: 0 0 24px;">${periodLabel}</p>
+
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                  <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; color: #57534e;">Platform access fee</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; text-align: right; color: #1c1917;">$10.00</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; color: #57534e;">${clicks.length} click${clicks.length !== 1 ? "s" : ""} claimed</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; text-align: right; color: #1c1917;">$${(clickCents / 100).toFixed(2)}</td>
+                  </tr>
+                  ${boostCount > 0 ? `<tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; color: #57534e;">${boostCount} featured boost day${boostCount !== 1 ? "s" : ""}</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; font-size: 14px; text-align: right; color: #1c1917;">$${(boostCents / 100).toFixed(2)}</td>
+                  </tr>` : ""}
+                  <tr>
+                    <td style="padding: 16px 0 4px; font-size: 16px; font-weight: 700; color: #1c1917;">Total charged</td>
+                    <td style="padding: 16px 0 4px; font-size: 16px; font-weight: 700; text-align: right; color: #ff6b5b;">$${(totalCents / 100).toFixed(2)}</td>
+                  </tr>
+                </table>
+
+                <p style="font-size: 13px; color: #78716c; margin: 0 0 20px;">
+                  This amount has been charged to your card on file.
+                  ${result.hostedUrl ? `<a href="${result.hostedUrl}" style="color: #ff6b5b;">View full invoice &rarr;</a>` : ""}
+                </p>
+
+                <a href="https://www.blockandmortar.co/business/dashboard/billing" style="display:inline-block; background:#ff6b5b; color:white; text-decoration:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:600;">View billing dashboard</a>
+
+                <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e7e5e4;">
+                  <p style="font-size: 12px; color: #a8a29e; margin: 0;">Questions? Reply to this email or contact ryan@blockandmortar.co</p>
+                </div>
+              </div>
+            `,
+          }),
+        });
+        await prisma.invoice.update({ where: { id: savedInvoice.id }, data: { emailSentAt: new Date() } });
+      } catch (emailErr) {
+        console.error("[billing] Failed to send billing email:", emailErr);
+      }
+    }
 
     // Update spentCents on each offer
     if (result.success) {

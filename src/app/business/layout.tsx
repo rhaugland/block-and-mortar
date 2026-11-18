@@ -51,6 +51,12 @@ export default function BusinessLayout({ children }: { children: React.ReactNode
             >
               Boost
             </Link>
+            <Link
+              href="/business/dashboard/billing"
+              className={`text-[13px] font-medium transition-colors ${pathname.includes("billing") ? "text-coral" : "text-text-secondary hover:text-text-primary"}`}
+            >
+              Billing
+            </Link>
             <button
               onClick={logout}
               className="text-[13px] font-medium text-text-tertiary transition-colors hover:text-text-secondary"

@@ -204,6 +204,8 @@ model Invoice {
   businessId      String
   business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   amountCents     Int
+  clickCents      Int      @default(0)
+  boostCents      Int      @default(0)
   clickCount      Int
   periodStart     DateTime
   periodEnd       DateTime
@@ -211,6 +213,7 @@ model Invoice {
   stripeHostedUrl String?
   status          String   @default("pending") // pending, paid, failed, void
   failReason      String?
+  emailSentAt     DateTime?
   createdAt       DateTime @default(now())
 
   @@index([businessId])

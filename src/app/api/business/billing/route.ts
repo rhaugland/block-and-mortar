@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: Get billing status for current business
+// GET: Billing status, invoice history, and current month estimate
 export async function GET(req: NextRequest) {
   try {
     const session = getSession(req);
@@ -60,29 +60,94 @@ export async function GET(req: NextRequest) {
 
     const business = await prisma.business.findUnique({
       where: { id: session.id },
-      select: { stripeCustomerId: true },
+      select: { stripeCustomerId: true, email: true },
     });
 
-    if (!business?.stripeCustomerId) {
-      return NextResponse.json({ hasPaymentMethod: false, totalSpentCents: 0 });
+    // Payment method info
+    let hasPaymentMethod = false;
+    let cardLast4: string | null = null;
+    let cardBrand: string | null = null;
+
+    if (business?.stripeCustomerId) {
+      try {
+        const pms = await getStripe().paymentMethods.list({
+          customer: business.stripeCustomerId,
+          type: "card",
+        });
+        hasPaymentMethod = pms.data.length > 0;
+        cardLast4 = pms.data[0]?.card?.last4 || null;
+        cardBrand = pms.data[0]?.card?.brand || null;
+      } catch {}
     }
 
-    const paymentMethods = await getStripe().paymentMethods.list({
-      customer: business.stripeCustomerId,
-      type: "card",
-    });
-
-    const offers = await prisma.offer.findMany({
+    // Invoice history
+    const invoices = await prisma.invoice.findMany({
       where: { businessId: session.id },
-      select: { spentCents: true },
+      orderBy: { periodEnd: "desc" },
+      take: 24,
     });
 
-    const totalSpentCents = offers.reduce((sum, o) => sum + o.spentCents, 0);
+    // Current month estimate: clicks and boosts since last paid invoice
+    const lastPaidInvoice = await prisma.invoice.findFirst({
+      where: { businessId: session.id, status: "paid" },
+      orderBy: { periodEnd: "desc" },
+    });
+    const periodStart = lastPaidInvoice?.periodEnd || new Date("2020-01-01");
+
+    const [recentClicks, upcomingBoosts] = await Promise.all([
+      prisma.click.findMany({
+        where: { businessId: session.id, createdAt: { gt: periodStart } },
+        select: { offerId: true },
+      }),
+      prisma.featuredBoost.findMany({
+        where: {
+          businessId: session.id,
+          status: "active",
+          date: { gt: periodStart },
+        },
+        include: { offer: { select: { title: true } } },
+        orderBy: { date: "asc" },
+      }),
+    ]);
+
+    // Calculate click charges grouped by offer CPC
+    const clicksByOffer: Record<string, number> = {};
+    for (const c of recentClicks) {
+      clicksByOffer[c.offerId] = (clicksByOffer[c.offerId] || 0) + 1;
+    }
+    const offerIds = Object.keys(clicksByOffer);
+    const offerCpcs = offerIds.length > 0
+      ? await prisma.offer.findMany({ where: { id: { in: offerIds } }, select: { id: true, cpcCents: true } })
+      : [];
+    const cpcMap: Record<string, number> = {};
+    for (const o of offerCpcs) cpcMap[o.id] = o.cpcCents;
+    let currentClickCents = 0;
+    for (const [offerId, count] of Object.entries(clicksByOffer)) {
+      currentClickCents += count * (cpcMap[offerId] || 50);
+    }
+
+    const currentBoostCents = upcomingBoosts.reduce((sum, b) => sum + b.amountCents, 0);
+    const currentEstimateCents = 1000 + currentClickCents + currentBoostCents; // $10 platform + clicks + boosts
 
     return NextResponse.json({
-      hasPaymentMethod: paymentMethods.data.length > 0,
-      cardLast4: paymentMethods.data[0]?.card?.last4 || null,
-      totalSpentCents,
+      hasPaymentMethod,
+      cardLast4,
+      cardBrand,
+      invoices,
+      currentEstimate: {
+        platformFeeCents: 1000,
+        clickCents: currentClickCents,
+        clickCount: recentClicks.length,
+        boostCents: currentBoostCents,
+        totalCents: currentEstimateCents,
+        periodStart: periodStart.toISOString(),
+        upcomingBoosts: upcomingBoosts.map((b) => ({
+          id: b.id,
+          date: b.date.toISOString(),
+          offerTitle: b.offer.title,
+          amountCents: b.amountCents,
+        })),
+      },
     });
   } catch (err) {
     console.error("Billing GET error:", err);
