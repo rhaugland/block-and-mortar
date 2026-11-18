@@ -60,6 +60,8 @@ export default function AdminEmailsPage() {
   const [sending, setSending] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const replyRef = useRef<HTMLDivElement>(null);
+  const [replySending, setReplySending] = useState(false);
 
   const fetchEmails = useCallback(() => {
     fetch("/api/admin/emails")
@@ -190,6 +192,34 @@ export default function AdminEmailsPage() {
     setSending(false);
   };
 
+  const handleThreadReply = async () => {
+    if (!openThread || !replyRef.current) return;
+    const bodyHtml = replyRef.current.innerHTML || "";
+    if (!bodyHtml.replace(/<[^>]*>/g, "").trim()) return;
+    setReplySending(true);
+    // Use the last subject from the thread
+    const lastSubject = openThread.messages[openThread.messages.length - 1]?.subject || "Re:";
+    const reSubject = lastSubject.startsWith("Re:") ? lastSubject : `Re: ${lastSubject}`;
+    try {
+      const r = await fetch("/api/admin/emails/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toEmail: openThread.email,
+          toFirstName: openThread.name.split(" ")[0] || null,
+          toLastName: openThread.name.split(" ").slice(1).join(" ") || null,
+          subject: reSubject,
+          bodyHtml,
+        }),
+      });
+      if (r.ok) {
+        replyRef.current.innerHTML = "";
+        fetchEmails();
+      }
+    } catch {}
+    setReplySending(false);
+  };
+
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -261,6 +291,37 @@ export default function AdminEmailsPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Reply box */}
+        <div className="mt-6 rounded-2xl border border-glass-border bg-white/70 p-4 backdrop-blur-sm">
+          <div
+            ref={replyRef}
+            contentEditable
+            className="min-h-[80px] w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2.5 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline"
+            data-placeholder={`Reply to ${openThread.name || openThread.email}...`}
+            style={{ whiteSpace: "pre-wrap" }}
+          />
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button onClick={() => { document.execCommand("bold"); replyRef.current?.focus(); }} title="Bold" className="flex h-7 w-7 items-center justify-center rounded text-text-tertiary hover:bg-white/80 hover:text-text-primary transition-colors">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 2.5h4a2.5 2.5 0 010 5H3.5V2.5zM3.5 7.5h5a2.5 2.5 0 010 5H3.5V7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button onClick={() => { document.execCommand("italic"); replyRef.current?.focus(); }} title="Italic" className="flex h-7 w-7 items-center justify-center rounded text-text-tertiary hover:bg-white/80 hover:text-text-primary transition-colors">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 12.5h3M5.5 1.5h3M8.5 1.5l-3 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button onClick={() => { const url = prompt("Link URL:"); if (url) { document.execCommand("createLink", false, url); replyRef.current?.focus(); } }} title="Insert link" className="flex h-7 w-7 items-center justify-center rounded text-text-tertiary hover:bg-white/80 hover:text-text-primary transition-colors">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6 8l2-2m-2.5-1.5L7 3a2.828 2.828 0 014 4l-1.5 1.5m-4 0L4 10a2.828 2.828 0 01-4-4l1.5-1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+            <button
+              disabled={replySending}
+              onClick={handleThreadReply}
+              className="rounded-lg bg-coral px-5 py-2 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+            >
+              {replySending ? "Sending..." : "Send"}
+            </button>
+          </div>
         </div>
       </div>
     );
