@@ -72,12 +72,13 @@ export default function AdminEmailsPage() {
 <p>If you have 15 minutes in the next few weeks, I'd love to tell you more.</p>
 <p>Best,<br/>Ryan</p>`;
 
-  const BUSINESS_SUBJECT = "Get your offers in front of local apartment renters";
+  const BUSINESS_SUBJECT = "Pilot partner invite — local apartment widget";
   const BUSINESS_BODY = `<p>Hi {{first_name}},</p>
-<p>I'm building Block &amp; Mortar — a widget that sits on apartment community websites and shows nearby business offers to prospective renters while they're browsing listings.</p>
-<p>Think of it like a local perks page, but embedded right where renters are already looking. You set a discount or offer, and renters see it alongside the apartment they're considering.</p>
-<p>You only pay per click — no monthly fees, no contracts. It's a simple way to reach people who are actively moving into the neighborhood.</p>
-<p>Would you be open to a quick 10-minute call to see if it's a fit?</p>
+<p>We're building a widget for local apartment websites that offers prospective renters a discount for visiting nearby businesses while they search for a place to live.</p>
+<p>Renters browsing online often have no reason to visit the neighborhood. We want to give them one: a chance to experience a local spot like yours and, ideally, become a regular once they move in.</p>
+<p>Most rewards programs target residents who have already moved in. We're focused on people who are still looking and open to exploring the area.</p>
+<p>Our standard pricing is a per-click fee for each claimed discount plus a $10/month platform fee. Right now, though, we're looking for pilot partners, and we'll waive all fees permanently for up to 5 businesses in the area.</p>
+<p>If you'd be open to offering a discount and joining as a pilot partner, I'd love to connect.</p>
 <p>Best,<br/>Ryan</p>`;
 
   const applyTemplate = (type: "custom" | "apartment" | "business") => {
