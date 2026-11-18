@@ -44,9 +44,23 @@ export async function POST(req: NextRequest) {
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px;">
               ${mergedBody}
               <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e7e5e4;">
-                <p style="margin: 0; font-size: 13px; font-weight: 600; color: #1c1917;">Ryan Haugland</p>
-                <p style="margin: 2px 0 0; font-size: 12px; color: #78716c;">Block &amp; Mortar</p>
-                <p style="margin: 2px 0 0; font-size: 12px; color: #78716c;">ryan@blockandmortar.co</p>
+                <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding-right: 14px; vertical-align: top;">
+                      <img src="https://blockandmortar.co/api/logo" alt="Block &amp; Mortar" width="100" height="24" style="display: block;" />
+                    </td>
+                    <td style="border-left: 2px solid #ff6b5b; padding-left: 14px; vertical-align: top;">
+                      <p style="margin: 0; font-size: 14px; font-weight: 700; color: #1c1917;">Ryan Haugland</p>
+                      <p style="margin: 2px 0 0; font-size: 12px; color: #78716c;">CEO, Block &amp; Mortar</p>
+                      <p style="margin: 6px 0 0; font-size: 12px; color: #57534e;">
+                        <a href="tel:6515282737" style="color: #57534e; text-decoration: none;">651-528-2737</a>
+                      </p>
+                      <p style="margin: 2px 0 0; font-size: 12px;">
+                        <a href="mailto:ryanrhaugland@gmail.com" style="color: #ff6b5b; text-decoration: none;">ryanrhaugland@gmail.com</a>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
               </div>
             </div>
           `,
