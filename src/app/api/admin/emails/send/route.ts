@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
               <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e7e5e4;">
                 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   <tr>
-                    <td style="padding-right: 14px; vertical-align: top;">
-                      <img src="https://blockandmortar.co/api/logo" alt="Block &amp; Mortar" width="100" height="24" style="display: block;" />
+                    <td style="padding-right: 14px; vertical-align: middle;">
+                      <img src="https://www.blockandmortar.co/api/logo" alt="Block &amp; Mortar" width="140" height="32" style="display: block;" />
                     </td>
                     <td style="border-left: 2px solid #ff6b5b; padding-left: 14px; vertical-align: top;">
                       <p style="margin: 0; font-size: 14px; font-weight: 700; color: #1c1917;">Ryan Haugland</p>
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
                         <a href="tel:6515282737" style="color: #57534e; text-decoration: none;">651-528-2737</a>
                       </p>
                       <p style="margin: 2px 0 0; font-size: 12px;">
-                        <a href="mailto:ryanrhaugland@gmail.com" style="color: #ff6b5b; text-decoration: none;">ryanrhaugland@gmail.com</a>
+                        <a href="mailto:ryan@blockandmortar.co" style="color: #ff6b5b; text-decoration: none;">ryan@blockandmortar.co</a>
                       </p>
                     </td>
                   </tr>

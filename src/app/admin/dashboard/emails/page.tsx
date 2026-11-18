@@ -192,6 +192,29 @@ export default function AdminEmailsPage() {
     setSending(false);
   };
 
+  const handleDeleteThread = async (email: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm("Delete entire conversation?")) return;
+    await fetch("/api/admin/emails/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ threadEmail: email }),
+    });
+    if (openThreadEmail === email) setOpenThreadEmail(null);
+    fetchEmails();
+  };
+
+  const handleDeleteMessage = async (msg: ThreadMessage) => {
+    if (!confirm("Delete this message?")) return;
+    const payload = msg.direction === "sent" ? { sentId: msg.id } : { receivedId: msg.id };
+    await fetch("/api/admin/emails/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    fetchEmails();
+  };
+
   const handleThreadReply = async () => {
     if (!openThread || !replyRef.current) return;
     const bodyHtml = replyRef.current.innerHTML || "";
@@ -248,9 +271,18 @@ export default function AdminEmailsPage() {
               <p className="text-[13px] text-text-tertiary">{openThread.email}</p>
             )}
           </div>
-          <span className="ml-auto text-[12px] text-text-tertiary">
-            {openThread.messages.length} message{openThread.messages.length !== 1 ? "s" : ""}
-          </span>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-[12px] text-text-tertiary">
+              {openThread.messages.length} message{openThread.messages.length !== 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={() => handleDeleteThread(openThread.email)}
+              title="Delete thread"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-red-50 hover:text-red-500 transition-colors"
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -258,7 +290,7 @@ export default function AdminEmailsPage() {
           {openThread.messages.map((m) => (
             <div
               key={m.id}
-              className={`rounded-2xl border p-5 backdrop-blur-sm ${
+              className={`group/msg rounded-2xl border p-5 backdrop-blur-sm ${
                 m.direction === "sent"
                   ? "border-coral/15 bg-coral/5 ml-8"
                   : "border-glass-border bg-white/70 mr-8"
@@ -277,9 +309,18 @@ export default function AdminEmailsPage() {
                     {new Date(m.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                   </span>
                 </div>
-                {m.direction === "sent" && m.status === "failed" && (
-                  <span className="text-[11px] font-medium text-red-500">Failed</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {m.direction === "sent" && m.status === "failed" && (
+                    <span className="text-[11px] font-medium text-red-500">Failed</span>
+                  )}
+                  <button
+                    onClick={() => handleDeleteMessage(m)}
+                    title="Delete message"
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-text-tertiary/50 hover:bg-red-50 hover:text-red-500 transition-colors opacity-0 group-hover/msg:opacity-100"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                </div>
               </div>
               {m.subject && (
                 <p className="mb-1.5 text-[12px] font-semibold text-text-secondary">{m.subject}</p>
@@ -495,7 +536,7 @@ export default function AdminEmailsPage() {
             <button
               key={t.email}
               onClick={() => { setOpenThreadEmail(t.email); markThreadRead(t); }}
-              className={`flex w-full items-center gap-4 rounded-2xl border px-5 py-4 text-left backdrop-blur-sm transition-all hover:shadow-sm ${
+              className={`group/thread flex w-full items-center gap-4 rounded-2xl border px-5 py-4 text-left backdrop-blur-sm transition-all hover:shadow-sm ${
                 t.hasUnread ? "border-coral/20 bg-white/80" : "border-glass-border bg-white/70"
               }`}
             >
@@ -530,10 +571,17 @@ export default function AdminEmailsPage() {
                 </p>
               </div>
 
-              {/* Message count */}
+              {/* Message count + delete */}
               <span className="shrink-0 text-[11px] text-text-tertiary">
                 {t.messages.length}
               </span>
+              <button
+                onClick={(e) => handleDeleteThread(t.email, e)}
+                title="Delete thread"
+                className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 transition-colors opacity-0 group-hover/thread:opacity-100"
+              >
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-text-tertiary">
                 <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>

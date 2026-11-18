@@ -1,6 +1,6 @@
 // Serves the Block & Mortar logo as an SVG image for email signatures
 export async function GET() {
-  const svg = `<svg width="120" height="28" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  const svg = `<svg width="140" height="28" viewBox="0 0 140 28" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Ground -->
   <rect x="0" y="25" width="30" height="3" rx="1.5" fill="#fbbf24" opacity="0.4"/>
   <!-- Left building -->
