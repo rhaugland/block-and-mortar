@@ -24,6 +24,9 @@ export async function POST(req: NextRequest) {
 
   const payload = await req.json();
 
+  // Log full payload to debug field mapping
+  console.log("[INBOUND] Full payload:", JSON.stringify(payload).slice(0, 2000));
+
   // Handle both wrapped { type, data } and flat payload formats
   const data = payload.data || payload;
   const eventType = payload.type || "email.received";
@@ -33,10 +36,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ skipped: eventType });
   }
 
-  const fromRaw = data.from || "";
+  const fromRaw = data.from || data.sender || "";
   const subject = data.subject || "(no subject)";
-  const bodyText = data.text || null;
-  const bodyHtml = data.html || null;
+  const bodyText = data.text || data.body || data.text_body || data.plain || null;
+  const bodyHtml = data.html || data.html_body || data.body_html || null;
+
+  console.log("[INBOUND] Parsed — from:", fromRaw, "subject:", subject, "hasText:", !!bodyText, "hasHtml:", !!bodyHtml);
 
   // Parse "Name <email>" or plain email
   let fromEmail = fromRaw;
@@ -54,8 +59,11 @@ export async function POST(req: NextRequest) {
     fromName = fromRaw.name || null;
   }
 
+  // Store raw payload snippet as bodyText fallback for debugging
+  const finalText = bodyText || JSON.stringify(data).slice(0, 1000);
+
   await prisma.inboundEmail.create({
-    data: { fromEmail, fromName, subject, bodyText, bodyHtml },
+    data: { fromEmail, fromName, subject, bodyText: finalText, bodyHtml },
   });
 
   console.log(`[INBOUND] Received email from ${fromEmail}: ${subject}`);
