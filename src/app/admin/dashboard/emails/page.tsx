@@ -57,11 +57,42 @@ export default function AdminEmailsPage() {
   const [toFirstName, setToFirstName] = useState("");
   const [toLastName, setToLastName] = useState("");
   const [subject, setSubject] = useState("");
+  const [contactType, setContactType] = useState<"custom" | "apartment" | "business">("custom");
   const [sending, setSending] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const replyRef = useRef<HTMLDivElement>(null);
   const [replySending, setReplySending] = useState(false);
+
+  const APARTMENT_SUBJECT = "Local perks widget for your apartment website";
+  const APARTMENT_BODY = `<p>Hi {{first_name}},</p>
+<p>We're building a website widget, similar to the "Chat with us" or "Schedule a tour" tools on your site, that lets local restaurants and businesses offer discounts to prospective renters while they browse your apartment page.</p>
+<p>Most rewards programs start after move-in. We want to reach renters earlier and encourage them to explore the neighborhood while they're still deciding where to live.</p>
+<p>Businesses pay us per click, and we share 25% of that revenue with you for clicks that come from your website. There's no cost to you.</p>
+<p>If you have 15 minutes in the next few weeks, I'd love to tell you more.</p>
+<p>Best,<br/>Ryan</p>`;
+
+  const BUSINESS_SUBJECT = "Get your offers in front of local apartment renters";
+  const BUSINESS_BODY = `<p>Hi {{first_name}},</p>
+<p>I'm building Block &amp; Mortar — a widget that sits on apartment community websites and shows nearby business offers to prospective renters while they're browsing listings.</p>
+<p>Think of it like a local perks page, but embedded right where renters are already looking. You set a discount or offer, and renters see it alongside the apartment they're considering.</p>
+<p>You only pay per click — no monthly fees, no contracts. It's a simple way to reach people who are actively moving into the neighborhood.</p>
+<p>Would you be open to a quick 10-minute call to see if it's a fit?</p>
+<p>Best,<br/>Ryan</p>`;
+
+  const applyTemplate = (type: "custom" | "apartment" | "business") => {
+    setContactType(type);
+    if (type === "apartment") {
+      setSubject(APARTMENT_SUBJECT);
+      if (editorRef.current) editorRef.current.innerHTML = APARTMENT_BODY;
+    } else if (type === "business") {
+      setSubject(BUSINESS_SUBJECT);
+      if (editorRef.current) editorRef.current.innerHTML = BUSINESS_BODY;
+    } else {
+      setSubject("");
+      if (editorRef.current) editorRef.current.innerHTML = "";
+    }
+  };
 
   const fetchEmails = useCallback(() => {
     fetch("/api/admin/emails")
@@ -184,6 +215,7 @@ export default function AdminEmailsPage() {
           setToFirstName("");
           setToLastName("");
           setSubject("");
+          setContactType("custom");
           if (editorRef.current) editorRef.current.innerHTML = "";
           fetchEmails();
         }, 2000);
@@ -399,7 +431,7 @@ export default function AdminEmailsPage() {
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-[16px] font-semibold text-text-primary">New Email</h2>
             <button
-              onClick={() => { setComposing(false); setToEmail(""); setToFirstName(""); setToLastName(""); setSubject(""); if (editorRef.current) editorRef.current.innerHTML = ""; }}
+              onClick={() => { setComposing(false); setToEmail(""); setToFirstName(""); setToLastName(""); setSubject(""); setContactType("custom"); if (editorRef.current) editorRef.current.innerHTML = ""; }}
               className="text-[12px] font-medium text-text-tertiary hover:text-text-primary transition-colors"
             >
               Cancel
@@ -412,6 +444,25 @@ export default function AdminEmailsPage() {
             </div>
           ) : (
             <div className="space-y-3">
+              <div>
+                <label className="block text-[12px] font-medium text-text-tertiary mb-1">Template</label>
+                <div className="flex gap-2">
+                  {(["apartment", "business", "custom"] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => applyTemplate(type)}
+                      className={`rounded-lg px-4 py-2 text-[13px] font-medium transition-all ${
+                        contactType === type
+                          ? "bg-coral text-white shadow-sm shadow-coral/20"
+                          : "bg-white/80 border border-glass-border text-text-secondary hover:bg-white hover:text-text-primary"
+                      }`}
+                    >
+                      {type === "apartment" ? "Apartment" : type === "business" ? "Business" : "Custom"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="block text-[12px] font-medium text-text-tertiary mb-1">Email</label>
