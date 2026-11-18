@@ -14,6 +14,8 @@ interface RedemptionData {
   businessAddress: string;
   redeemed: boolean;
   redeemedAt: string | null;
+  expiresAt: string | null;
+  expired: boolean;
 }
 
 export default function RedeemPage() {
@@ -56,6 +58,10 @@ function RedeemContent() {
       const res = await fetch(`/api/redeem/${token}`, { method: "POST" });
       if (res.status === 409) {
         setRedeemed(true);
+        return;
+      }
+      if (res.status === 410) {
+        setData((prev) => prev ? { ...prev, expired: true } : prev);
         return;
       }
       if (!res.ok) throw new Error("Failed");
@@ -120,7 +126,7 @@ function RedeemContent() {
               <p className="mt-1 text-[13px] text-stone-500">{data.offerDescription}</p>
             </div>
 
-            {/* Redeem button or redeemed state */}
+            {/* Redeem button or redeemed/expired state */}
             {redeemed ? (
               <div className="mt-6 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -137,8 +143,29 @@ function RedeemContent() {
                 </p>
                 <p className="mt-4 text-[12px] text-stone-400">This perk has been used and cannot be redeemed again.</p>
               </div>
+            ) : data.expired ? (
+              <div className="mt-6 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2"/>
+                    <path d="M12 7v5l3 3" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="mt-3 text-[18px] font-bold text-red-500">Expired</p>
+                <p className="mt-1 text-[13px] text-stone-400">
+                  This perk expired on {new Date(data.expiresAt!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </p>
+                <p className="mt-4 text-[12px] text-stone-400">Check the widget for new perks available near you.</p>
+              </div>
             ) : (
               <div className="mt-6">
+                {data.expiresAt && (
+                  <div className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-center">
+                    <p className="text-[12px] font-medium text-amber-700">
+                      Expires {new Date(data.expiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} &middot; {Math.max(0, Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left
+                    </p>
+                  </div>
+                )}
                 <p className="mb-3 text-center text-[13px] text-stone-500">
                   Show this to your server and tap the button below.
                 </p>

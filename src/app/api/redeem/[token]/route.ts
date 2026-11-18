@@ -10,7 +10,7 @@ export async function GET(
     const redemption = await prisma.redemption.findUnique({
       where: { token },
       include: {
-        offer: { select: { title: true, description: true, imageUrl: true, expiresAt: true } },
+        offer: { select: { title: true, description: true, imageUrl: true } },
         business: { select: { name: true, logoUrl: true, category: true, address: true, city: true, state: true } },
       },
     });
@@ -19,18 +19,21 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    const expired = redemption.expiresAt && new Date() > redemption.expiresAt;
+
     return NextResponse.json({
       firstName: redemption.firstName,
       offerTitle: redemption.offer.title,
       offerDescription: redemption.offer.description,
       offerImageUrl: redemption.offer.imageUrl,
-      offerExpiresAt: redemption.offer.expiresAt,
       businessName: redemption.business.name,
       businessLogoUrl: redemption.business.logoUrl,
       businessCategory: redemption.business.category,
       businessAddress: `${redemption.business.address}, ${redemption.business.city}, ${redemption.business.state}`,
       redeemed: !!redemption.redeemedAt,
       redeemedAt: redemption.redeemedAt,
+      expiresAt: redemption.expiresAt,
+      expired: !!expired,
     });
   } catch (err) {
     console.error("Redeem GET error:", err);
@@ -54,6 +57,10 @@ export async function POST(
 
     if (redemption.redeemedAt) {
       return NextResponse.json({ error: "Already redeemed", redeemedAt: redemption.redeemedAt }, { status: 409 });
+    }
+
+    if (redemption.expiresAt && new Date() > redemption.expiresAt) {
+      return NextResponse.json({ error: "This perk has expired" }, { status: 410 });
     }
 
     await prisma.redemption.update({

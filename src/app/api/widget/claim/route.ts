@@ -45,6 +45,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Calculate per-user redemption expiration
+    const redeemExpiresAt = offer.redeemDays
+      ? new Date(Date.now() + offer.redeemDays * 24 * 60 * 60 * 1000)
+      : null;
+
     // Create redemption + record click + increment spend
     const [redemption] = await Promise.all([
       prisma.redemption.create({
@@ -55,6 +60,7 @@ export async function POST(req: NextRequest) {
           firstName,
           lastName,
           email,
+          expiresAt: redeemExpiresAt,
         },
       }),
       prisma.click.create({
@@ -84,6 +90,7 @@ export async function POST(req: NextRequest) {
             <p style="font-size: 18px; font-weight: 700; color: #1c1917; margin: 0 0 4px;">${offer.title}</p>
             <p style="font-size: 13px; color: #78716c; margin: 0 0 16px;">${offer.description}</p>
             <a href="${redeemLink}" style="display: inline-block; background: linear-gradient(135deg, #ff6b5b, #fb923c); color: #fff; padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none;">Open My Perk</a>
+            ${redeemExpiresAt ? `<p style="font-size: 12px; color: #78716c; margin-top: 12px;">You have <strong>${offer.redeemDays} days</strong> to redeem this perk (expires ${redeemExpiresAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}).</p>` : ""}
           </div>
           <p style="font-size: 11px; color: #a8a29e; margin-top: 24px;">Powered by Block & Mortar</p>
         </div>

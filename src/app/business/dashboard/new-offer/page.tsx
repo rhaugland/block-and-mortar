@@ -5,12 +5,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 
-const DURATIONS = [
+const CAMPAIGN_DURATIONS = [
   { label: "7 days", value: 7 },
   { label: "14 days", value: 14 },
   { label: "30 days", value: 30 },
   { label: "90 days", value: 90 },
   { label: "Custom", value: -1 },
+];
+
+const REDEEM_WINDOWS = [
+  { label: "3 days", value: 3 },
+  { label: "7 days", value: 7 },
+  { label: "14 days", value: 14 },
+  { label: "30 days", value: 30 },
 ];
 
 const CAT_ICONS: Record<string, string> = {
@@ -28,9 +35,10 @@ export default function NewOffer() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [duration, setDuration] = useState(30);
-  const [customDays, setCustomDays] = useState("");
-  const [isCustom, setIsCustom] = useState(false);
+  const [campaignDays, setCampaignDays] = useState(30);
+  const [customCampaignDays, setCustomCampaignDays] = useState("");
+  const [isCustomCampaign, setIsCustomCampaign] = useState(false);
+  const [redeemDays, setRedeemDays] = useState(7);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -74,7 +82,7 @@ export default function NewOffer() {
     return () => { if (nearbyTimerRef.current) clearTimeout(nearbyTimerRef.current); };
   }, [radius]);
 
-  const effectiveDuration = isCustom ? (parseInt(customDays) || 0) : duration;
+  const effectiveCampaignDays = isCustomCampaign ? (parseInt(customCampaignDays) || 0) : campaignDays;
 
   const uploadFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -120,8 +128,8 @@ export default function NewOffer() {
     e.preventDefault();
     setError("");
 
-    if (isCustom && (!customDays || parseInt(customDays) < 1)) {
-      setError("Please enter a valid number of days");
+    if (isCustomCampaign && (!customCampaignDays || parseInt(customCampaignDays) < 1)) {
+      setError("Please enter a valid number of days for campaign duration");
       return;
     }
 
@@ -131,7 +139,8 @@ export default function NewOffer() {
       title,
       imageUrl: imageUrl || undefined,
       radiusMiles: parseFloat(radius) || 3,
-      durationDays: effectiveDuration,
+      campaignDays: effectiveCampaignDays,
+      redeemDays,
     };
 
     try {
@@ -199,24 +208,25 @@ export default function NewOffer() {
               />
             </div>
 
-            {/* Duration */}
+            {/* Campaign Duration */}
             <div>
-              <label className={label}>How long should this run?</label>
+              <label className={label}>How long should this show on apartment sites?</label>
+              <p className="text-[11px] text-text-tertiary mb-2">After this, the offer stops appearing on widgets.</p>
               <div className="flex gap-2">
-                {DURATIONS.map((d) => (
+                {CAMPAIGN_DURATIONS.map((d) => (
                   <button
                     key={d.value}
                     type="button"
                     onClick={() => {
                       if (d.value === -1) {
-                        setIsCustom(true);
+                        setIsCustomCampaign(true);
                       } else {
-                        setIsCustom(false);
-                        setDuration(d.value);
+                        setIsCustomCampaign(false);
+                        setCampaignDays(d.value);
                       }
                     }}
                     className={`flex-1 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
-                      (d.value === -1 && isCustom) || (d.value !== -1 && !isCustom && duration === d.value)
+                      (d.value === -1 && isCustomCampaign) || (d.value !== -1 && !isCustomCampaign && campaignDays === d.value)
                         ? "bg-coral text-white shadow-sm"
                         : "border border-glass-border bg-white/60 text-text-secondary hover:bg-white"
                     }`}
@@ -225,19 +235,41 @@ export default function NewOffer() {
                   </button>
                 ))}
               </div>
-              {isCustom && (
+              {isCustomCampaign && (
                 <div className="mt-2">
                   <input
                     type="number"
                     min="1"
                     max="365"
                     placeholder="Number of days"
-                    value={customDays}
-                    onChange={(e) => setCustomDays(e.target.value)}
+                    value={customCampaignDays}
+                    onChange={(e) => setCustomCampaignDays(e.target.value)}
                     className={input}
                   />
                 </div>
               )}
+            </div>
+
+            {/* Redeem Window */}
+            <div>
+              <label className={label}>How long does someone have to redeem?</label>
+              <p className="text-[11px] text-text-tertiary mb-2">Timer starts when they claim the perk, unique to each person.</p>
+              <div className="flex gap-2">
+                {REDEEM_WINDOWS.map((d) => (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => setRedeemDays(d.value)}
+                    className={`flex-1 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
+                      redeemDays === d.value
+                        ? "bg-coral text-white shadow-sm"
+                        : "border border-glass-border bg-white/60 text-text-secondary hover:bg-white"
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Image Upload */}

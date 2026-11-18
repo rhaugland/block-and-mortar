@@ -104,10 +104,12 @@ model Offer {
   budgetCents Int       @default(10000)
   spentCents  Int       @default(0)
   cpcCents    Int       @default(50)
-  active      Boolean   @default(true)
-  startsAt    DateTime  @default(now())
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
+  active       Boolean   @default(true)
+  startsAt     DateTime  @default(now())
+  expiresAt    DateTime? // campaign end date (startsAt + campaignDays) — when offer stops showing on widgets
+  campaignDays Int?      // how many days the offer runs on apartment sites
+  redeemDays   Int       @default(7) // how many days a user has to redeem after claiming
+  createdAt    DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   impressions Impression[]
@@ -165,6 +167,7 @@ model Redemption {
   lastName   String
   email      String
   redeemedAt DateTime?
+  expiresAt  DateTime? // per-user deadline to redeem (claimedAt + offer.redeemDays)
   createdAt  DateTime  @default(now())
 
   @@index([token])

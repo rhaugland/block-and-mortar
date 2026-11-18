@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, imageUrl, radiusMiles, durationDays } = body;
+    const { title, description, imageUrl, radiusMiles, campaignDays, redeemDays } = body;
 
     if (!title) {
       return NextResponse.json(
@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
       ? `${business.address}, ${business.city}, ${business.state}`
       : title;
 
-    const expiresAt = durationDays
-      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+    const expiresAt = campaignDays
+      ? new Date(Date.now() + campaignDays * 24 * 60 * 60 * 1000)
       : null;
 
     const offer = await prisma.offer.create({
@@ -83,6 +83,8 @@ export async function POST(req: NextRequest) {
         redeemUrl: null,
         radiusMiles: radiusMiles ?? 3.0,
         cpcCents: 50,
+        campaignDays: campaignDays || null,
+        redeemDays: redeemDays || 7,
         expiresAt,
       },
     });
