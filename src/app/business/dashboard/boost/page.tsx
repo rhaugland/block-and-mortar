@@ -27,6 +27,8 @@ export default function BoostPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
+  const [cancelling, setCancelling] = useState<string | null>(null);
+  const [cancelledMsg, setCancelledMsg] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +73,26 @@ export default function BoostPage() {
     setSelectedDates((prev) =>
       prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]
     );
+  };
+
+  const handleCancel = async (boostId: string) => {
+    if (!confirm("Cancel this boost? If it's already been billed, we'll automatically refund $25 to your card.")) return;
+    setCancelling(boostId);
+    try {
+      const r = await fetch("/api/business/boost", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boostId }),
+      });
+      const data = await r.json();
+      if (r.ok) {
+        setCancelledMsg(data.refunded ? "Boost cancelled and $25 refunded to your card." : "Boost cancelled.");
+        const updated = await fetch("/api/business/boost").then((r) => r.json());
+        setBoosts(updated.boosts || []);
+        setTimeout(() => setCancelledMsg(""), 5000);
+      }
+    } catch {}
+    setCancelling(null);
   };
 
   const handleBook = async () => {
@@ -234,6 +256,12 @@ export default function BoostPage() {
             </div>
           )}
 
+          {cancelledMsg && (
+            <div className="mt-4 rounded-xl bg-blue-50 px-4 py-3 text-center text-[14px] font-medium text-blue-700">
+              {cancelledMsg}
+            </div>
+          )}
+
           {/* Active boosts */}
           {activeBoosts.length > 0 && (
             <div className="mt-8">
@@ -247,9 +275,18 @@ export default function BoostPage() {
                         {new Date(b.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </p>
                     </div>
-                    <span className="rounded-full bg-coral/10 px-2.5 py-0.5 text-[11px] font-semibold text-coral">
-                      ${(b.amountCents / 100).toFixed(0)}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full bg-coral/10 px-2.5 py-0.5 text-[11px] font-semibold text-coral">
+                        ${(b.amountCents / 100).toFixed(0)}
+                      </span>
+                      <button
+                        onClick={() => handleCancel(b.id)}
+                        disabled={cancelling === b.id}
+                        className="text-[12px] font-medium text-text-tertiary hover:text-red-500 transition-colors disabled:opacity-40"
+                      >
+                        {cancelling === b.id ? "Cancelling..." : "Cancel"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
