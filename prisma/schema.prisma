@@ -257,16 +257,35 @@ model FeaturedBoost {
 // ─── Outbound Emails ────────────────────────────────────────────
 
 model OutboundEmail {
-  id        String   @id @default(cuid())
-  toEmail   String
-  toName    String?
-  subject   String
-  body      String
-  status    String   @default("sent") // sent, failed
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  toEmail     String
+  toFirstName String?
+  toLastName  String?
+  subject     String
+  body        String
+  bodyHtml    String?  @db.Text
+  status      String   @default("sent") // sent, failed
+  createdAt   DateTime @default(now())
 
   @@index([toEmail])
   @@index([createdAt])
+}
+
+// ─── Inbound Emails (replies received) ──────────────────────────
+
+model InboundEmail {
+  id        String   @id @default(cuid())
+  fromEmail String
+  fromName  String?
+  subject   String
+  bodyText  String?  @db.Text
+  bodyHtml  String?  @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([fromEmail])
+  @@index([createdAt])
+  @@index([read])
 }
 
 // ─── Password Reset ──────────────────────────────────────────────
