@@ -72,8 +72,18 @@ export async function GET(req: NextRequest) {
       clickCents += count * (cpcMap[offerId] || 50);
     }
 
-    // Total = platform fee + click charges
-    const totalCents = PLATFORM_FEE_CENTS + clickCents;
+    // Get featured boost charges for this period
+    const boosts = await prisma.featuredBoost.findMany({
+      where: {
+        businessId: biz.id,
+        status: "active",
+        date: { gt: periodStart, lte: periodEnd },
+      },
+    });
+    const boostCents = boosts.reduce((sum, b) => sum + b.amountCents, 0);
+
+    // Total = platform fee + click charges + boosts
+    const totalCents = PLATFORM_FEE_CENTS + clickCents + boostCents;
 
     // Create Stripe invoice (always includes platform fee)
     const result = await createAndChargeInvoice({
@@ -84,6 +94,10 @@ export async function GET(req: NextRequest) {
       periodStart,
       periodEnd,
       includePlatformFee: true,
+      extraLineItems: boostCents > 0 ? [{
+        amountCents: boostCents,
+        description: `Block & Mortar — ${boosts.length} Featured Boost day${boosts.length > 1 ? "s" : ""} × $${(boosts[0]?.amountCents / 100 || 25).toFixed(0)}/day`,
+      }] : [],
     });
 
     // Record invoice in DB

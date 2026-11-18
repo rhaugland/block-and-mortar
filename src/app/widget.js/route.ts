@@ -48,9 +48,11 @@ export async function GET() {
         '.bm-minimize { cursor: pointer; background: none; border: none; font-size: 16px; color: rgba(255,255,255,0.7); padding: 4px; transition: color 0.15s; }' +
         '.bm-minimize:hover { color: #fff; }' +
         '.bm-list { overflow-y: auto; max-height: 420px; padding: 8px; }' +
-        '.bm-offer { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: ' + Math.max(parseInt(c.radius) - 4, 6) + 'px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; }' +
+        '.bm-offer { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: ' + Math.max(parseInt(c.radius) - 4, 6) + 'px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; position: relative; }' +
         '.bm-offer:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }' +
         '.bm-offer:last-child { margin-bottom: 0; }' +
+        '.bm-offer.bm-featured { border-color: ' + c.primary + '40; background: linear-gradient(135deg, ' + c.primary + '08, ' + c.accent + '08); }' +
+        '.bm-feat-badge { display: inline-flex; align-items: center; gap: 3px; position: absolute; top: 8px; right: 8px; background: ' + grad + '; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; }' +
         '.bm-biz { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }' +
         '.bm-logo { width: 32px; height: 32px; border-radius: 6px; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 16px; overflow: hidden; }' +
         '.bm-logo img { width: 100%; height: 100%; object-fit: cover; }' +
@@ -139,7 +141,8 @@ export async function GET() {
         var logo = o.businessLogoUrl
           ? '<img src="' + o.businessLogoUrl + '" alt="">'
           : icon;
-        return '<div class="bm-offer">' +
+        return '<div class="bm-offer' + (o.featured ? ' bm-featured' : '') + '">' +
+          (o.featured ? '<span class="bm-feat-badge">&#9733; Featured</span>' : '') +
           '<div class="bm-biz">' +
             '<div class="bm-logo">' + logo + '</div>' +
             '<div><div class="bm-biz-name">' + o.businessName + '</div>' +

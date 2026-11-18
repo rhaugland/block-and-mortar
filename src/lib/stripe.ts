@@ -16,6 +16,11 @@ export function getStripe(): Stripe {
 
 export const PLATFORM_FEE_CENTS = 1000; // $10/mo platform access fee
 
+interface ExtraLineItem {
+  amountCents: number;
+  description: string;
+}
+
 interface CreateInvoiceParams {
   customerId: string;
   businessName: string;
@@ -24,6 +29,7 @@ interface CreateInvoiceParams {
   periodStart: Date;
   periodEnd: Date;
   includePlatformFee?: boolean;
+  extraLineItems?: ExtraLineItem[];
 }
 
 interface InvoiceResult {
@@ -42,6 +48,7 @@ export async function createAndChargeInvoice({
   periodStart,
   periodEnd,
   includePlatformFee = true,
+  extraLineItems = [],
 }: CreateInvoiceParams): Promise<InvoiceResult> {
   const stripe = getStripe();
 
@@ -78,7 +85,20 @@ export async function createAndChargeInvoice({
       });
     }
 
-    const totalCents = amountCents + (includePlatformFee ? PLATFORM_FEE_CENTS : 0);
+    // Extra line items (e.g., featured boosts)
+    let extraTotal = 0;
+    for (const item of extraLineItems) {
+      await stripe.invoiceItems.create({
+        customer: customerId,
+        invoice: invoice.id,
+        amount: item.amountCents,
+        currency: "usd",
+        description: item.description,
+      });
+      extraTotal += item.amountCents;
+    }
+
+    const totalCents = amountCents + (includePlatformFee ? PLATFORM_FEE_CENTS : 0) + extraTotal;
 
     // Finalize and attempt payment
     const finalized = await stripe.invoices.finalizeInvoice(invoice.id);

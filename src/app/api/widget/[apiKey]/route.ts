@@ -84,6 +84,21 @@ export async function GET(
       });
     });
 
+    // Check which offers are featured today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const featuredToday = nearby.length > 0
+      ? await prisma.featuredBoost.findMany({
+          where: {
+            offerId: { in: nearby.map((o) => o.id) },
+            date: today,
+            status: "active",
+          },
+          select: { offerId: true },
+        })
+      : [];
+    const featuredIds = new Set(featuredToday.map((f) => f.offerId));
+
     // Record impressions
     if (nearby.length > 0) {
       await prisma.impression.createMany({
@@ -95,7 +110,15 @@ export async function GET(
       });
     }
 
-    const result = nearby.map((offer) => ({
+    // Sort featured to top, then by creation date
+    const sorted = [...nearby].sort((a, b) => {
+      const aFeat = featuredIds.has(a.id) ? 1 : 0;
+      const bFeat = featuredIds.has(b.id) ? 1 : 0;
+      if (bFeat !== aFeat) return bFeat - aFeat;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
+    const result = sorted.map((offer) => ({
       id: offer.id,
       title: offer.title,
       description: offer.description,
@@ -104,6 +127,7 @@ export async function GET(
       businessName: offer.business.name,
       businessCategory: offer.business.category,
       businessLogoUrl: offer.business.logoUrl,
+      featured: featuredIds.has(offer.id),
     }));
 
     const style = property.widgetStyle as Record<string, string> | null;

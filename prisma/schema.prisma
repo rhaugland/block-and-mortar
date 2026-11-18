@@ -83,11 +83,12 @@ model Business {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  offers      Offer[]
-  impressions Impression[]
-  clicks      Click[]
-  redemptions Redemption[]
-  invoices    Invoice[]
+  offers         Offer[]
+  impressions    Impression[]
+  clicks         Click[]
+  redemptions    Redemption[]
+  invoices       Invoice[]
+  featuredBoosts FeaturedBoost[]
 }
 
 // ─── Offer (Coupon / Deal) ──────────────────────────────────────────
@@ -112,9 +113,10 @@ model Offer {
   createdAt    DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  impressions Impression[]
-  clicks      Click[]
-  redemptions Redemption[]
+  impressions    Impression[]
+  clicks         Click[]
+  redemptions    Redemption[]
+  featuredBoosts FeaturedBoost[]
 
   @@index([businessId])
   @@index([active])
@@ -231,6 +233,25 @@ model SupportTicket {
 
   @@index([status])
   @@index([createdAt])
+}
+
+// ─── Featured Boosts ────────────────────────────────────────────
+
+model FeaturedBoost {
+  id          String   @id @default(cuid())
+  offerId     String
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date // the calendar date this boost is active
+  amountCents Int      @default(2500) // $25/day default
+  status      String   @default("active") // active, cancelled
+  createdAt   DateTime @default(now())
+
+  @@unique([offerId, date])
+  @@index([businessId])
+  @@index([date])
+  @@index([status])
 }
 
 // ─── Outbound Emails ────────────────────────────────────────────
