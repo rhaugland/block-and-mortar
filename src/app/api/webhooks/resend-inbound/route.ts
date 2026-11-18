@@ -1,49 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Resend sends inbound emails as webhook events
-// Format: { type: "email.received", created_at: "...", data: { from, to, subject, text, html, ... } }
 export async function POST(req: NextRequest) {
-  const webhook_secret = process.env.RESEND_INBOUND_SECRET;
-  if (webhook_secret) {
-    const sig =
-      req.headers.get("svix-signature") ||
-      req.headers.get("x-resend-signature") ||
-      req.headers.get("authorization") ||
-      "";
-    // Resend uses Svix for webhook signing — for now accept if secret matches as bearer or raw
-    if (
-      sig !== webhook_secret &&
-      sig !== `Bearer ${webhook_secret}` &&
-      !sig.includes(webhook_secret)
-    ) {
-      // Log but don't block — Resend's signing is Svix-based and complex
-      console.log("[INBOUND] Signature mismatch, processing anyway for now");
-    }
-  }
-
   const payload = await req.json();
 
-  // Log full payload to debug field mapping
-  console.log("[INBOUND] Full payload:", JSON.stringify(payload).slice(0, 2000));
-
-  // Handle both wrapped { type, data } and flat payload formats
+  // Handle wrapped { type, data } or flat format
   const data = payload.data || payload;
   const eventType = payload.type || "email.received";
 
-  // Only process email.received events
   if (eventType !== "email.received") {
     return NextResponse.json({ skipped: eventType });
   }
 
-  const fromRaw = data.from || data.sender || "";
+  const fromRaw = data.from || "";
   const subject = data.subject || "(no subject)";
-  const bodyText = data.text || data.body || data.text_body || data.plain || null;
-  const bodyHtml = data.html || data.html_body || data.body_html || null;
+  const emailId = data.email_id || null;
 
-  console.log("[INBOUND] Parsed — from:", fromRaw, "subject:", subject, "hasText:", !!bodyText, "hasHtml:", !!bodyHtml);
-
-  // Parse "Name <email>" or plain email
+  // Parse from field
   let fromEmail = fromRaw;
   let fromName: string | null = null;
 
@@ -54,19 +27,40 @@ export async function POST(req: NextRequest) {
       fromEmail = match[2].trim();
     }
   } else if (typeof fromRaw === "object" && fromRaw !== null) {
-    // Resend may send { email, name } object
     fromEmail = fromRaw.email || fromRaw.address || "";
     fromName = fromRaw.name || null;
   }
 
-  // Store raw payload snippet as bodyText fallback for debugging
-  const finalText = bodyText || JSON.stringify(data).slice(0, 1000);
+  // Fetch full email content from Resend API using email_id
+  let bodyText: string | null = null;
+  let bodyHtml: string | null = null;
+
+  if (emailId) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      try {
+        const res = await fetch(`https://api.resend.com/emails/${emailId}`, {
+          headers: { Authorization: `Bearer ${resendKey}` },
+        });
+        if (res.ok) {
+          const emailData = await res.json();
+          bodyHtml = emailData.html || null;
+          bodyText = emailData.text || emailData.body || null;
+          console.log("[INBOUND] Fetched email content, hasHtml:", !!bodyHtml, "hasText:", !!bodyText);
+        } else {
+          console.log("[INBOUND] Failed to fetch email:", res.status, await res.text());
+        }
+      } catch (err) {
+        console.log("[INBOUND] Error fetching email:", err);
+      }
+    }
+  }
 
   await prisma.inboundEmail.create({
-    data: { fromEmail, fromName, subject, bodyText: finalText, bodyHtml },
+    data: { fromEmail, fromName, subject, bodyText, bodyHtml },
   });
 
-  console.log(`[INBOUND] Received email from ${fromEmail}: ${subject}`);
+  console.log(`[INBOUND] Stored email from ${fromEmail}: ${subject}`);
 
   return NextResponse.json({ received: true });
 }
