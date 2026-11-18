@@ -10,6 +10,7 @@ const CAMPAIGN_DURATIONS = [
   { label: "14 days", value: 14 },
   { label: "30 days", value: 30 },
   { label: "90 days", value: 90 },
+  { label: "Forever", value: 0 },
   { label: "Custom", value: -1 },
 ];
 
@@ -18,6 +19,7 @@ const REDEEM_WINDOWS = [
   { label: "7 days", value: 7 },
   { label: "14 days", value: 14 },
   { label: "30 days", value: 30 },
+  { label: "Forever", value: 0 },
 ];
 
 const CAT_ICONS: Record<string, string> = {

@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         radiusMiles: radiusMiles ?? 3.0,
         cpcCents: 50,
         campaignDays: campaignDays || null,
-        redeemDays: redeemDays || 7,
+        redeemDays: redeemDays != null ? redeemDays : 7,
         expiresAt,
       },
     });
