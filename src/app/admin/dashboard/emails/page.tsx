@@ -141,8 +141,9 @@ export default function AdminEmailsPage() {
   // Compose (from contacts) state
   const [composingFor, setComposingFor] = useState<Contact | null>(null);
   const [bulkContacts, setBulkContacts] = useState<Contact[]>([]);
+  const [bulkTemplate, setBulkTemplate] = useState<EmailTemplate | null>(null);
+  const [expandedBulkId, setExpandedBulkId] = useState<string | null>(null);
   const [bulkSending, setBulkSending] = useState(false);
-  const [bulkReviewing, setBulkReviewing] = useState(true);
   const [bulkProgress, setBulkProgress] = useState<{ sent: number; total: number } | null>(null);
   const [composeTemplate, setComposeTemplate] = useState<"business" | "apartment">("business");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -253,29 +254,12 @@ export default function AdminEmailsPage() {
     const contacts = filteredContacts.filter((c) => selectedIds.has(c.id));
     setBulkContacts(contacts);
     setComposeSent(false);
-    setBulkReviewing(true);
     setBulkProgress(null);
-    setSelectedTemplateId(null);
-    // Pick dominant type
-    const types = contacts.map((c) => c.type);
-    const type = types.every((t) => t === "apartment") ? "apartment" : "business";
-    const preview = contacts[0];
-    setComposeSubject(getSubject(preview?.firstName || ""));
+    setExpandedBulkId(null);
+    // Auto-pick template based on dominant type
+    const type = contacts.every((c) => c.type === "apartment") ? "apartment" : "business";
     const matching = templates.filter((t) => t.type === type);
-    if (matching.length === 1) {
-      const tpl = matching[0];
-      setComposeTemplate(type as "business" | "apartment");
-      setSelectedTemplateId(tpl.id);
-      setComposeSubject(applyBodyForContact(tpl.subject, preview?.firstName ?? null));
-      setTemplatePicked(true);
-      setTimeout(() => {
-        if (composeEditorRef.current)
-          composeEditorRef.current.innerHTML = applyBodyForContact(tpl.bodyHtml, preview?.firstName ?? null);
-      }, 30);
-    } else {
-      setComposeTemplate(type as "business" | "apartment");
-      setTemplatePicked(false);
-    }
+    setBulkTemplate(matching[0] ?? null);
   };
 
   const handleContactSend = async () => {
@@ -307,12 +291,9 @@ export default function AdminEmailsPage() {
   };
 
   const handleBulkSend = async () => {
-    if (!composeEditorRef.current || bulkContacts.length === 0) return;
-    // The editor has the TEMPLATE body (with {{first_name}} already swapped for the preview contact).
-    // We need the raw template body to re-merge for each recipient.
-    const tpl = templates.find((t) => t.id === selectedTemplateId);
-    const rawBody = tpl?.bodyHtml ?? composeEditorRef.current.innerHTML;
-    const rawSubject = tpl?.subject ?? composeSubject;
+    if (!bulkTemplate || bulkContacts.length === 0) return;
+    const rawBody = bulkTemplate.bodyHtml;
+    const rawSubject = bulkTemplate.subject;
     setBulkSending(true);
     setBulkProgress({ sent: 0, total: bulkContacts.length });
     let sent = 0;
@@ -812,13 +793,14 @@ export default function AdminEmailsPage() {
       {bulkContacts.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm sm:items-center" onClick={(e) => { if (e.target === e.currentTarget && !bulkSending) setBulkContacts([]); }}>
           <div className="w-full max-w-2xl rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
+
+            {/* Header */}
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <p className="text-[16px] font-semibold text-text-primary">
-                  {bulkReviewing ? "Review recipients" : `Send to ${bulkContacts.length} contacts`}
-                </p>
+                <p className="text-[16px] font-semibold text-text-primary">Review recipients</p>
                 <p className="text-[12px] text-text-tertiary mt-0.5">
-                  {bulkReviewing ? `${bulkContacts.length} selected` : `${bulkContacts.length} contacts · ${templates.find((t) => t.id === selectedTemplateId)?.name ?? ""}`}
+                  {bulkContacts.length} contact{bulkContacts.length !== 1 ? "s" : ""}
+                  {bulkTemplate && <> · <span className="text-text-secondary">{bulkTemplate.name}</span></>}
                 </p>
               </div>
               {!bulkSending && (
@@ -833,88 +815,72 @@ export default function AdminEmailsPage() {
                 <p className="text-[16px] font-semibold text-green-700">All sent!</p>
                 <p className="mt-1 text-[13px] text-green-600">Sent {bulkContacts.length} emails successfully</p>
               </div>
-            ) : bulkReviewing ? (
-              /* ── Step 0: Review recipient list ── */
-              <div>
-                <div className="max-h-[380px] overflow-y-auto rounded-2xl border border-glass-border divide-y divide-glass-border">
-                  {bulkContacts.map((c) => (
-                    <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-surface/40 transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-text-primary truncate">
-                          {c.company || [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}
-                        </p>
-                        <p className="text-[11px] text-text-tertiary truncate">{c.email}</p>
-                      </div>
-                      <button
-                        onClick={() => setBulkContacts((prev) => prev.filter((x) => x.id !== c.id))}
-                        className="ml-3 flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-[12px] text-text-tertiary">{bulkContacts.length} recipient{bulkContacts.length !== 1 ? "s" : ""}</p>
-                  <button
-                    disabled={bulkContacts.length === 0}
-                    onClick={() => setBulkReviewing(false)}
-                    className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
-                  >
-                    Continue →
-                  </button>
-                </div>
-              </div>
-            ) : !templatePicked ? (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[13px] text-text-secondary">Choose a template:</p>
-                  <button onClick={() => setBulkReviewing(true)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">← back to list</button>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {templates.filter((t) => t.type === composeTemplate).map((tpl) => (
-                    <button key={tpl.id} onClick={() => pickTemplate(tpl)} className="rounded-2xl border-2 border-glass-border bg-surface/40 p-4 text-left transition-all hover:border-coral/40 hover:bg-coral/5 hover:shadow-sm active:scale-[0.98]">
-                      <div className="mb-2 flex items-center gap-2">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tpl.type === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{tpl.name}</span>
-                      </div>
-                      <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-3">{tpl.bodyHtml.replace(/<[^>]*>/g, "").replace(/\{\{first_name\}\}/gi, bulkContacts[0]?.firstName || "there")}</p>
-                      <p className="mt-3 text-[11px] font-semibold text-coral">View template →</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
             ) : (
               <>
-                <div className="mb-4 flex items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${composeTemplate === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>
-                    {templates.find((t) => t.id === selectedTemplateId)?.name ?? composeTemplate}
-                  </span>
-                  {templates.filter((t) => t.type === composeTemplate).length > 1 && !bulkSending && (
-                    <button onClick={() => setTemplatePicked(false)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">change template</button>
-                  )}
-                  <span className="ml-auto text-[11px] text-text-tertiary">Preview: {bulkContacts[0]?.firstName || bulkContacts[0]?.email}</span>
+                {/* Recipient list — click to expand email preview */}
+                <div className="rounded-2xl border border-glass-border divide-y divide-glass-border overflow-hidden max-h-[420px] overflow-y-auto">
+                  {bulkContacts.map((c) => {
+                    const isOpen = expandedBulkId === c.id;
+                    const preview = bulkTemplate ? applyBodyForContact(bulkTemplate.bodyHtml, c.firstName) : "";
+                    const previewSubject = bulkTemplate ? applyBodyForContact(bulkTemplate.subject, c.firstName) : "";
+                    return (
+                      <div key={c.id} className={`transition-colors ${isOpen ? "bg-surface/40" : "hover:bg-surface/20"}`}>
+                        <button
+                          onClick={() => setExpandedBulkId(isOpen ? null : c.id)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`flex-shrink-0 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`}><path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13px] font-medium text-text-primary truncate">
+                              {c.company || [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}
+                            </p>
+                            <p className="text-[11px] text-text-tertiary truncate">{c.email}</p>
+                          </div>
+                          {!bulkSending && (
+                            <span
+                              role="button"
+                              onClick={(e) => { e.stopPropagation(); setBulkContacts((prev) => prev.filter((x) => x.id !== c.id)); if (expandedBulkId === c.id) setExpandedBulkId(null); }}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            </span>
+                          )}
+                        </button>
+                        {isOpen && bulkTemplate && (
+                          <div className="px-4 pb-4 pt-1">
+                            <p className="text-[11px] font-medium text-text-tertiary mb-1.5">Subject: <span className="text-text-secondary font-normal">{previewSubject}</span></p>
+                            <div
+                              className="rounded-xl border border-glass-border bg-white px-4 py-3 text-[13px] text-text-primary leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0"
+                              dangerouslySetInnerHTML={{ __html: preview }}
+                            />
+                          </div>
+                        )}
+                        {isOpen && !bulkTemplate && (
+                          <p className="px-4 pb-4 text-[12px] text-text-tertiary italic">No template selected.</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="mb-3">
-                  <label className="block text-[12px] font-medium text-text-tertiary mb-1">Subject</label>
-                  <input value={composeSubject} onChange={(e) => setComposeSubject(e.target.value)} disabled={bulkSending} className="w-full rounded-lg border border-glass-border bg-surface/50 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral disabled:opacity-60" />
-                </div>
-
-                <div ref={composeEditorRef} contentEditable={!bulkSending} suppressContentEditableWarning className="min-h-[280px] w-full rounded-xl border border-glass-border bg-surface/40 px-4 py-3 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_p]:mb-6 [&_p:last-child]:mb-0" style={{ whiteSpace: "pre-wrap" }} />
-
-                <div className="mt-4 flex items-center justify-between">
+                {/* Send bar */}
+                <div className="mt-4 flex items-center justify-between gap-4">
                   {bulkSending && bulkProgress ? (
-                    <div className="flex items-center gap-3 flex-1 mr-4">
+                    <div className="flex items-center gap-3 flex-1">
                       <div className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
                         <div className="h-full rounded-full bg-coral transition-all duration-300" style={{ width: `${(bulkProgress.sent / bulkProgress.total) * 100}%` }} />
                       </div>
                       <span className="text-[12px] text-text-tertiary whitespace-nowrap">{bulkProgress.sent}/{bulkProgress.total}</span>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-text-tertiary">{"{{first_name}}"} personalizes per recipient</p>
+                    <p className="text-[12px] text-text-tertiary">{bulkContacts.length} recipient{bulkContacts.length !== 1 ? "s" : ""}</p>
                   )}
-                  <button onClick={handleBulkSend} disabled={bulkSending} className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 whitespace-nowrap">
-                    {bulkSending ? "Sending..." : `Send to ${bulkContacts.length}`}
+                  <button
+                    onClick={handleBulkSend}
+                    disabled={bulkSending || !bulkTemplate || bulkContacts.length === 0}
+                    className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {bulkSending ? "Sending..." : `Send to all ${bulkContacts.length}`}
                   </button>
                 </div>
               </>
