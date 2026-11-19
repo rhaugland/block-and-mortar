@@ -142,6 +142,7 @@ export default function AdminEmailsPage() {
   const [composingFor, setComposingFor] = useState<Contact | null>(null);
   const [bulkContacts, setBulkContacts] = useState<Contact[]>([]);
   const [bulkSending, setBulkSending] = useState(false);
+  const [bulkReviewing, setBulkReviewing] = useState(true);
   const [bulkProgress, setBulkProgress] = useState<{ sent: number; total: number } | null>(null);
   const [composeTemplate, setComposeTemplate] = useState<"business" | "apartment">("business");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -252,6 +253,7 @@ export default function AdminEmailsPage() {
     const contacts = filteredContacts.filter((c) => selectedIds.has(c.id));
     setBulkContacts(contacts);
     setComposeSent(false);
+    setBulkReviewing(true);
     setBulkProgress(null);
     setSelectedTemplateId(null);
     // Pick dominant type
@@ -812,10 +814,11 @@ export default function AdminEmailsPage() {
           <div className="w-full max-w-2xl rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <p className="text-[16px] font-semibold text-text-primary">Send to {bulkContacts.length} contacts</p>
+                <p className="text-[16px] font-semibold text-text-primary">
+                  {bulkReviewing ? "Review recipients" : `Send to ${bulkContacts.length} contacts`}
+                </p>
                 <p className="text-[12px] text-text-tertiary mt-0.5">
-                  {bulkContacts.slice(0, 3).map((c) => c.firstName || c.email).join(", ")}
-                  {bulkContacts.length > 3 && ` +${bulkContacts.length - 3} more`}
+                  {bulkReviewing ? `${bulkContacts.length} selected` : `${bulkContacts.length} contacts · ${templates.find((t) => t.id === selectedTemplateId)?.name ?? ""}`}
                 </p>
               </div>
               {!bulkSending && (
@@ -830,9 +833,44 @@ export default function AdminEmailsPage() {
                 <p className="text-[16px] font-semibold text-green-700">All sent!</p>
                 <p className="mt-1 text-[13px] text-green-600">Sent {bulkContacts.length} emails successfully</p>
               </div>
+            ) : bulkReviewing ? (
+              /* ── Step 0: Review recipient list ── */
+              <div>
+                <div className="max-h-[380px] overflow-y-auto rounded-2xl border border-glass-border divide-y divide-glass-border">
+                  {bulkContacts.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-surface/40 transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-medium text-text-primary truncate">
+                          {c.company || [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}
+                        </p>
+                        <p className="text-[11px] text-text-tertiary truncate">{c.email}</p>
+                      </div>
+                      <button
+                        onClick={() => setBulkContacts((prev) => prev.filter((x) => x.id !== c.id))}
+                        className="ml-3 flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-[12px] text-text-tertiary">{bulkContacts.length} recipient{bulkContacts.length !== 1 ? "s" : ""}</p>
+                  <button
+                    disabled={bulkContacts.length === 0}
+                    onClick={() => setBulkReviewing(false)}
+                    className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+                  >
+                    Continue →
+                  </button>
+                </div>
+              </div>
             ) : !templatePicked ? (
               <div>
-                <p className="mb-4 text-[13px] text-text-secondary">Choose a template:</p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[13px] text-text-secondary">Choose a template:</p>
+                  <button onClick={() => setBulkReviewing(true)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">← back to list</button>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {templates.filter((t) => t.type === composeTemplate).map((tpl) => (
                     <button key={tpl.id} onClick={() => pickTemplate(tpl)} className="rounded-2xl border-2 border-glass-border bg-surface/40 p-4 text-left transition-all hover:border-coral/40 hover:bg-coral/5 hover:shadow-sm active:scale-[0.98]">
