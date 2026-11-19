@@ -762,7 +762,7 @@ export default function AdminEmailsPage() {
                 </div>
 
                 {/* Body */}
-                <div ref={composeEditorRef} contentEditable className="min-h-[280px] w-full rounded-xl border border-glass-border bg-surface/40 px-4 py-3 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_p]:mb-2" style={{ whiteSpace: "pre-wrap" }} />
+                <div ref={composeEditorRef} contentEditable className="min-h-[280px] w-full rounded-xl border border-glass-border bg-surface/40 px-4 py-3 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_p]:mb-4 [&_p:last-child]:mb-0" style={{ whiteSpace: "pre-wrap" }} />
 
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-[11px] text-text-tertiary">
