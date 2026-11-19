@@ -543,6 +543,11 @@ export default function AdminEmailsPage() {
                 Responses
                 {totalUnread > 0 && <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white/30 px-1 text-[10px] font-bold">{totalUnread}</span>}
               </span>
+            ) : t === "templates" ? (
+              <span className="flex items-center gap-2">
+                Templates
+                <span className="text-[10px] opacity-60">{templates.length}</span>
+              </span>
             ) : (
               <span className="flex items-center gap-2">
                 Contacts
