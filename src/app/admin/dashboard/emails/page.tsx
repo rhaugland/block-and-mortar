@@ -10,6 +10,7 @@ interface Contact {
   lastName: string | null;
   email: string;
   company: string | null;
+  type: string;
   lastContactedAt: string | null;
   contactList: { name: string } | null;
 }
@@ -107,6 +108,7 @@ export default function AdminEmailsPage() {
   const [lists, setLists] = useState<ContactList[]>([]);
   const [contactsLoading, setContactsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "business" | "apartment">("all");
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -169,8 +171,9 @@ export default function AdminEmailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFirstName]);
 
-  // Open contact compose modal
-  const openComposeFor = (contact: Contact, template: "business" | "apartment") => {
+  // Open contact compose modal — auto-match template to contact type
+  const openComposeFor = (contact: Contact) => {
+    const template: "business" | "apartment" = contact.type === "apartment" ? "apartment" : "business";
     setComposingFor(contact);
     setComposeTemplate(template);
     setComposeSubject(getSubject(contact.firstName || ""));
@@ -335,15 +338,18 @@ export default function AdminEmailsPage() {
 
   // Filtered contacts
   const filteredContacts = useMemo(() => {
-    const q = search.toLowerCase();
-    if (!q) return contacts;
-    return contacts.filter((c) =>
-      (c.company || "").toLowerCase().includes(q) ||
-      (c.firstName || "").toLowerCase().includes(q) ||
-      (c.lastName || "").toLowerCase().includes(q) ||
-      c.email.toLowerCase().includes(q)
-    );
-  }, [contacts, search]);
+    return contacts.filter((c) => {
+      if (typeFilter !== "all" && c.type !== typeFilter) return false;
+      const q = search.toLowerCase();
+      if (!q) return true;
+      return (
+        (c.company || "").toLowerCase().includes(q) ||
+        (c.firstName || "").toLowerCase().includes(q) ||
+        (c.lastName || "").toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q)
+      );
+    });
+  }, [contacts, search, typeFilter]);
 
   // ─── Thread detail view ──────────────────────────────────────
   if (tab === "inbox" && openThread) {
@@ -451,6 +457,19 @@ export default function AdminEmailsPage() {
             <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-[13px] text-green-700">{uploadMsg}</div>
           )}
 
+          {/* Type filter toggle */}
+          <div className="mt-3 flex gap-1 rounded-xl border border-glass-border bg-white/60 p-1 w-fit">
+            {(["all", "business", "apartment"] as const).map((t) => {
+              const count = t === "all" ? contacts.length : contacts.filter((c) => c.type === t).length;
+              return (
+                <button key={t} onClick={() => setTypeFilter(t)} className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all capitalize ${typeFilter === t ? "bg-coral text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}>
+                  {t === "all" ? "All" : t === "business" ? "Businesses" : "Apartments"}
+                  <span className={`ml-1.5 text-[10px] ${typeFilter === t ? "opacity-70" : "text-text-tertiary"}`}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Lists summary */}
           {lists.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -498,8 +517,8 @@ export default function AdminEmailsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openComposeFor(c, "business")} className="rounded-lg bg-coral px-3 py-1.5 text-[12px] font-medium text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-[1.02] shadow-sm shadow-coral/20">
-                        Send
+                      <button onClick={() => openComposeFor(c)} className="rounded-lg bg-coral px-3 py-1.5 text-[12px] font-medium text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-[1.02] shadow-sm shadow-coral/20">
+                        View
                       </button>
                       <button onClick={() => handleDeleteContact(c.id)} className="flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>

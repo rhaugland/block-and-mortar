@@ -322,6 +322,7 @@ model Contact {
   lastName        String?
   email           String       @unique
   company         String?
+  type            String       @default("business") // business | apartment
   contactListId   String?
   contactList     ContactList? @relation(fields: [contactListId], references: [id], onDelete: SetNull)
   lastContactedAt DateTime?
