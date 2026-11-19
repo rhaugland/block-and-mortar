@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
     }
 
     const currentBoostCents = upcomingBoosts.reduce((sum, b) => sum + b.amountCents, 0);
-    const currentEstimateCents = 1000 + currentClickCents + currentBoostCents; // $10 platform + clicks + boosts
+    const currentEstimateCents = 2500 + currentClickCents + currentBoostCents; // $25 platform + clicks + boosts
 
     return NextResponse.json({
       hasPaymentMethod,
@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
       cardBrand,
       invoices,
       currentEstimate: {
-        platformFeeCents: 1000,
+        platformFeeCents: 2500,
         clickCents: currentClickCents,
         clickCount: recentClicks.length,
         boostCents: currentBoostCents,

@@ -252,7 +252,7 @@ export default function BusinessDashboard() {
         </div>
       )}
       <p className="mt-2 text-[11px] text-text-tertiary">
-        Pay per click + <span className="font-medium">$10/mo</span> platform access fee, billed monthly.
+        Pay per click + <span className="font-medium">$25/mo</span> platform access fee, billed monthly.
       </p>
 
       {/* Stats */}

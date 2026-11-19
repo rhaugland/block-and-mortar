@@ -43,7 +43,7 @@ interface BillingData {
   currentEstimate: CurrentEstimate;
 }
 
-const PLATFORM_FEE = 10;
+const PLATFORM_FEE = 25;
 
 function fmt(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;

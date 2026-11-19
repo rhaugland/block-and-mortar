@@ -14,7 +14,7 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-export const PLATFORM_FEE_CENTS = 1000; // $10/mo platform access fee
+export const PLATFORM_FEE_CENTS = 2500; // $25/mo platform access fee
 
 interface ExtraLineItem {
   amountCents: number;
