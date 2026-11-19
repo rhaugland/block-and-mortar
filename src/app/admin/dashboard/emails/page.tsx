@@ -111,6 +111,8 @@ export default function AdminEmailsPage() {
   const [typeFilter, setTypeFilter] = useState<"all" | "business" | "apartment">("all");
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [showUploadTypePicker, setShowUploadTypePicker] = useState(false);
+  const uploadTypeRef = useRef<"business" | "apartment">("business");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Compose (from contacts) state
@@ -224,6 +226,7 @@ export default function AdminEmailsPage() {
     setUploadMsg("");
     const form = new FormData();
     form.append("file", file);
+    form.append("type", uploadTypeRef.current);
     try {
       const r = await fetch("/api/admin/contacts/upload", { method: "POST", body: form });
       const d = await r.json();
@@ -452,10 +455,27 @@ export default function AdminEmailsPage() {
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contacts..." className="w-full rounded-xl border border-glass-border bg-white/70 py-2.5 pl-9 pr-4 text-[13px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral" />
             </div>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); e.target.value = ""; }} />
-            <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 rounded-xl border border-glass-border bg-white/70 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:bg-white hover:text-text-primary transition-all disabled:opacity-50">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 7l4-5 4 5M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              {uploading ? "Uploading..." : "Upload list"}
-            </button>
+            <div className="relative">
+              <button onClick={() => setShowUploadTypePicker((v) => !v)} disabled={uploading} className="flex items-center gap-2 rounded-xl border border-glass-border bg-white/70 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:bg-white hover:text-text-primary transition-all disabled:opacity-50">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 7l4-5 4 5M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {uploading ? "Uploading..." : "Upload list"}
+              </button>
+              {showUploadTypePicker && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowUploadTypePicker(false)} />
+                  <div className="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-glass-border bg-white shadow-lg shadow-black/5 overflow-hidden">
+                  <p className="px-4 pt-3 pb-1.5 text-[11px] font-medium text-text-tertiary uppercase tracking-wide">Contact type</p>
+                  {(["business", "apartment"] as const).map((t) => (
+                    <button key={t} onClick={() => { uploadTypeRef.current = t; setShowUploadTypePicker(false); fileInputRef.current?.click(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:bg-surface/60 hover:text-text-primary transition-colors">
+                      <span className={`h-2 w-2 rounded-full ${t === "business" ? "bg-blue-400" : "bg-green-400"}`} />
+                      {t === "business" ? "Business" : "Apartment"}
+                    </button>
+                  ))}
+                  <div className="pb-1.5" />
+                </div>
+                </>
+              )}
+            </div>
           </div>
 
           {uploadMsg && (
@@ -508,7 +528,12 @@ export default function AdminEmailsPage() {
                   <div key={c.id} className={`group grid grid-cols-[2fr_1.5fr_2fr_1fr_auto] items-center gap-4 px-5 py-3.5 ${i !== filteredContacts.length - 1 ? "border-b border-glass-border" : ""} hover:bg-white/60 transition-colors`}>
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-semibold text-text-primary">{c.company || "—"}</p>
-                      {c.contactList && <p className="text-[11px] text-text-tertiary truncate">{c.contactList.name}</p>}
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${c.type === "apartment" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"}`}>
+                          {c.type === "apartment" ? "Apartment" : "Business"}
+                        </span>
+                        {c.contactList && <p className="text-[11px] text-text-tertiary truncate">{c.contactList.name}</p>}
+                      </div>
                     </div>
                     <p className="truncate text-[13px] text-text-secondary">{[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}</p>
                     <p className="truncate text-[12px] text-text-tertiary">{c.email}</p>

@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
+  const type = (formData.get("type") as string) || "business";
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = XLSX.read(buffer, { type: "buffer" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
           lastName: lastName || undefined,
           company: company || undefined,
           contactListId: listRecord.id,
+          type,
         },
         create: {
           email: email.toLowerCase(),
@@ -64,6 +67,7 @@ export async function POST(req: NextRequest) {
           lastName,
           company,
           contactListId: listRecord.id,
+          type,
         },
       });
       imported++;
