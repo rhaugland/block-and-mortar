@@ -653,7 +653,7 @@ export default function AdminEmailsPage() {
                         <button onClick={() => { document.execCommand("italic"); editorRef.current?.focus(); }} className="flex h-7 w-7 items-center justify-center rounded text-text-tertiary hover:bg-white/80 hover:text-text-primary transition-colors"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 12.5h3M5.5 1.5h3M8.5 1.5l-3 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </div>
-                    <div ref={editorRef} contentEditable className="min-h-[180px] w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2.5 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5" data-placeholder="Write your message..." style={{ whiteSpace: "pre-wrap" }} />
+                    <div ref={editorRef} contentEditable className="min-h-[180px] w-full rounded-lg border border-glass-border bg-white/80 px-3 py-2.5 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_p]:mb-6 [&_p:last-child]:mb-0" data-placeholder="Write your message..." style={{ whiteSpace: "pre-wrap" }} />
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-[11px] text-text-tertiary">Sending as <span className="font-medium text-text-secondary">ryan@blockandmortar.co</span></p>
@@ -762,7 +762,7 @@ export default function AdminEmailsPage() {
                 </div>
 
                 {/* Body */}
-                <div ref={composeEditorRef} contentEditable className="min-h-[280px] w-full rounded-xl border border-glass-border bg-surface/40 px-4 py-3 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_p]:mb-4 [&_p:last-child]:mb-0" style={{ whiteSpace: "pre-wrap" }} />
+                <div ref={composeEditorRef} contentEditable className="min-h-[280px] w-full rounded-xl border border-glass-border bg-surface/40 px-4 py-3 text-[13px] text-text-primary outline-none leading-relaxed focus:ring-2 focus:ring-coral/20 focus:border-coral [&_a]:text-coral [&_a]:underline [&_p]:mb-6 [&_p:last-child]:mb-0" style={{ whiteSpace: "pre-wrap" }} />
 
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-[11px] text-text-tertiary">

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           reply_to: "ryan@blockandmortar.co",
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px;">
-              ${mergedBody.replace(/<p(\s|>)/gi, '<p style="margin:0 0 16px 0;"$1')}
+              ${mergedBody.replace(/<p(\s|>)/gi, '<p style="margin:0 0 24px 0;"$1')}
               <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e7e5e4;">
                 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   <tr>
