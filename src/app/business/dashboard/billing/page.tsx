@@ -67,6 +67,15 @@ export default function BillingPage() {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [addingCard, setAddingCard] = useState(false);
+  const [cardError, setCardError] = useState("");
+  const [setupSuccess, setSetupSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("setup=success")) {
+      setSetupSuccess(true);
+      window.history.replaceState({}, "", "/business/dashboard/billing");
+    }
+  }, []);
   const [openInvoice, setOpenInvoice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -82,11 +91,18 @@ export default function BillingPage() {
 
   const handleAddCard = async () => {
     setAddingCard(true);
+    setCardError("");
     try {
       const r = await fetch("/api/business/billing", { method: "POST" });
-      const { url } = await r.json();
-      if (url) window.location.href = url;
-    } catch {}
+      const json = await r.json();
+      if (json.url) {
+        window.location.href = json.url;
+        return; // navigation in progress, don't reset state
+      }
+      setCardError(json.error || "Could not start payment setup. Please try again.");
+    } catch {
+      setCardError("Network error. Please try again.");
+    }
     setAddingCard(false);
   };
 
@@ -120,6 +136,13 @@ export default function BillingPage() {
         </div>
       </div>
 
+      {setupSuccess && (
+        <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 px-5 py-4">
+          <p className="text-[13px] font-semibold text-green-700">Payment method added successfully!</p>
+          <p className="mt-0.5 text-[12px] text-green-600">Your card is now on file and will be charged at the end of each billing period.</p>
+        </div>
+      )}
+
       {/* Payment method */}
       <div className="rounded-2xl border border-glass-border bg-white/70 p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between">
@@ -141,6 +164,9 @@ export default function BillingPage() {
             {addingCard ? "Redirecting..." : data?.hasPaymentMethod ? "Update card" : "Add card"}
           </button>
         </div>
+        {cardError && (
+          <p className="mt-3 text-[12px] text-red-500">{cardError}</p>
+        )}
       </div>
 
       {/* Current month estimate */}

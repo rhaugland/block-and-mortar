@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
     const checkoutSession = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: "setup",
-      success_url: `${appUrl}/business/dashboard?billing=success`,
-      cancel_url: `${appUrl}/business/dashboard?billing=cancel`,
+      success_url: `${appUrl}/business/dashboard/billing?setup=success`,
+      cancel_url: `${appUrl}/business/dashboard/billing`,
     });
 
     return NextResponse.json({ url: checkoutSession.url });
