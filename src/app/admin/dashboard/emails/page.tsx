@@ -116,6 +116,7 @@ export default function AdminEmailsPage() {
   // Compose (from contacts) state
   const [composingFor, setComposingFor] = useState<Contact | null>(null);
   const [composeTemplate, setComposeTemplate] = useState<"business" | "apartment">("business");
+  const [templatePicked, setTemplatePicked] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
   const [composeSending, setComposeSending] = useState(false);
   const [composeSent, setComposeSent] = useState(false);
@@ -171,18 +172,22 @@ export default function AdminEmailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFirstName]);
 
-  // Open contact compose modal — auto-match template to contact type
+  // Open contact compose modal — show template picker first
   const openComposeFor = (contact: Contact) => {
-    const template: "business" | "apartment" = contact.type === "apartment" ? "apartment" : "business";
     setComposingFor(contact);
-    setComposeTemplate(template);
-    setComposeSubject(getSubject(contact.firstName || ""));
+    setTemplatePicked(false);
     setComposeSent(false);
+    setComposeSubject(getSubject(contact.firstName || ""));
+  };
+
+  const pickTemplate = (template: "business" | "apartment") => {
+    setComposeTemplate(template);
+    setTemplatePicked(true);
     setTimeout(() => {
       if (composeEditorRef.current) {
         composeEditorRef.current.innerHTML = template === "business" ? BUSINESS_BODY : APARTMENT_BODY;
       }
-    }, 50);
+    }, 30);
   };
 
   const handleContactSend = async () => {
@@ -642,15 +647,36 @@ export default function AdminEmailsPage() {
                 <p className="text-[16px] font-semibold text-green-700">Sent!</p>
                 <p className="mt-1 text-[13px] text-green-600">Email delivered to {composingFor.email}</p>
               </div>
-            ) : (
-              <>
-                {/* Template toggle */}
-                <div className="mb-4 flex gap-2">
-                  {(["business", "apartment"] as const).map((t) => (
-                    <button key={t} onClick={() => { setComposeTemplate(t); if (composeEditorRef.current) composeEditorRef.current.innerHTML = t === "business" ? BUSINESS_BODY : APARTMENT_BODY; }} className={`rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all capitalize ${composeTemplate === t ? "bg-coral text-white" : "bg-surface border border-glass-border text-text-secondary hover:bg-white"}`}>
-                      {t}
+            ) : !templatePicked ? (
+              /* ── Step 1: Template picker ── */
+              <div>
+                <p className="mb-4 text-[13px] text-text-secondary">Choose a template to preview:</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {([
+                    { key: "business", label: "Business", preview: `Hi ${composingFor.firstName || "there"}, We're building a widget for local apartment websites that offers prospective renters a discount for visiting nearby businesses...` },
+                    { key: "apartment", label: "Apartment", preview: `Hi ${composingFor.firstName || "there"}, We're building a website widget, similar to the "Chat with us" or "Schedule a tour" tools on your site...` },
+                  ] as const).map(({ key, label, preview }) => (
+                    <button
+                      key={key}
+                      onClick={() => pickTemplate(key)}
+                      className="rounded-2xl border-2 border-glass-border bg-surface/40 p-4 text-left transition-all hover:border-coral/40 hover:bg-coral/5 hover:shadow-sm active:scale-[0.98]"
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${key === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{label}</span>
+                      </div>
+                      <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-3">{preview}</p>
+                      <p className="mt-3 text-[11px] font-semibold text-coral">View template →</p>
                     </button>
                   ))}
+                </div>
+              </div>
+            ) : (
+              /* ── Step 2: Edit & send ── */
+              <>
+                {/* Template switcher (back to picker) */}
+                <div className="mb-4 flex items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${composeTemplate === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{composeTemplate}</span>
+                  <button onClick={() => setTemplatePicked(false)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">change template</button>
                 </div>
 
                 {/* Subject */}
@@ -665,7 +691,7 @@ export default function AdminEmailsPage() {
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-[11px] text-text-tertiary">
                     {composingFor.firstName ? (
-                      <span>Hi <span className="font-medium text-text-secondary">{composingFor.firstName}</span> · <span className="font-medium text-text-secondary">{composeSubject}</span></span>
+                      <span>To <span className="font-medium text-text-secondary">{composingFor.firstName}</span> · <span className="font-medium text-text-secondary">{composeSubject}</span></span>
                     ) : composeSubject}
                   </p>
                   <button onClick={handleContactSend} disabled={composeSending} className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50">
