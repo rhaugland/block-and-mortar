@@ -118,6 +118,7 @@ export default function AdminEmailsPage() {
   const [contactsLoading, setContactsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "business" | "apartment">("all");
+  const [sortOrder, setSortOrder] = useState<"recent" | "oldest">("oldest");
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
   const [showUploadTypePicker, setShowUploadTypePicker] = useState(false);
@@ -448,7 +449,7 @@ export default function AdminEmailsPage() {
 
   // Filtered contacts
   const filteredContacts = useMemo(() => {
-    return contacts.filter((c) => {
+    const filtered = contacts.filter((c) => {
       if (typeFilter !== "all" && c.type !== typeFilter) return false;
       const q = search.toLowerCase();
       if (!q) return true;
@@ -459,7 +460,12 @@ export default function AdminEmailsPage() {
         c.email.toLowerCase().includes(q)
       );
     });
-  }, [contacts, search, typeFilter]);
+    return filtered.sort((a, b) => {
+      const aTime = a.lastContactedAt ? new Date(a.lastContactedAt).getTime() : 0;
+      const bTime = b.lastContactedAt ? new Date(b.lastContactedAt).getTime() : 0;
+      return sortOrder === "recent" ? bTime - aTime : aTime - bTime;
+    });
+  }, [contacts, search, typeFilter, sortOrder]);
 
   // ─── Thread detail view ──────────────────────────────────────
   if (tab === "inbox" && openThread) {
@@ -556,6 +562,10 @@ export default function AdminEmailsPage() {
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary"><circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/><path d="m11 11 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contacts..." className="w-full rounded-xl border border-glass-border bg-white/70 py-2.5 pl-9 pr-4 text-[13px] text-text-primary outline-none placeholder:text-text-tertiary focus:ring-2 focus:ring-coral/20 focus:border-coral" />
             </div>
+            <div className="flex gap-1 rounded-xl border border-glass-border bg-white/60 p-1">
+              {([["recent", "Most recent"], ["oldest", "Longest ago"]] as const).map(([val, label]) => (
+                <button key={val} onClick={() => setSortOrder(val)} className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all ${sortOrder === val ? "bg-coral text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}>{label}</button>
+              ))}</div>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); e.target.value = ""; }} />
             <div className="relative">
               <button onClick={() => setShowUploadTypePicker((v) => !v)} disabled={uploading} className="flex items-center gap-2 rounded-xl border border-glass-border bg-white/70 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:bg-white hover:text-text-primary transition-all disabled:opacity-50">
@@ -680,20 +690,6 @@ export default function AdminEmailsPage() {
                 ))}
               </div>
 
-              {/* Bulk action bar */}
-              {selectedIds.size > 0 && (
-                <div className="mt-3 flex items-center justify-between rounded-2xl border border-coral/20 bg-coral/5 px-5 py-3">
-                  <p className="text-[13px] font-medium text-text-secondary">
-                    <span className="font-semibold text-coral">{selectedIds.size}</span> contact{selectedIds.size !== 1 ? "s" : ""} selected
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setSelectedIds(new Set())} className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-text-tertiary hover:text-text-primary transition-colors">Clear</button>
-                    <button onClick={openBulkCompose} className="rounded-lg bg-coral px-4 py-1.5 text-[12px] font-medium text-white shadow-sm shadow-coral/20 hover:scale-[1.01] transition-all">
-                      View & Send →
-                    </button>
-                  </div>
-                </div>
-              )}
               </>
             )}
           </div>
@@ -1080,6 +1076,22 @@ export default function AdminEmailsPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && tab === "contacts" && (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
+          <div className="flex items-center gap-3 rounded-2xl border border-coral/20 bg-white px-5 py-3 shadow-xl shadow-black/10 backdrop-blur-sm">
+            <p className="text-[13px] font-medium text-text-secondary whitespace-nowrap">
+              <span className="font-semibold text-coral">{selectedIds.size}</span> selected
+            </p>
+            <div className="h-4 w-px bg-glass-border" />
+            <button onClick={() => setSelectedIds(new Set())} className="text-[12px] font-medium text-text-tertiary hover:text-text-primary transition-colors">Clear</button>
+            <button onClick={openBulkCompose} className="rounded-xl bg-coral px-4 py-2 text-[12px] font-semibold text-white shadow-sm shadow-coral/20 hover:scale-[1.02] transition-all">
+              View & Send →
+            </button>
+          </div>
         </div>
       )}
 
