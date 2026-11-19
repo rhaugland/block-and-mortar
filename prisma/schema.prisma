@@ -305,3 +305,29 @@ model PasswordReset {
   @@index([token])
   @@index([email])
 }
+
+// ─── Outreach Contacts ───────────────────────────────────────
+
+model ContactList {
+  id        String    @id @default(cuid())
+  name      String
+  count     Int       @default(0)
+  contacts  Contact[]
+  createdAt DateTime  @default(now())
+}
+
+model Contact {
+  id              String       @id @default(cuid())
+  firstName       String?
+  lastName        String?
+  email           String       @unique
+  company         String?
+  contactListId   String?
+  contactList     ContactList? @relation(fields: [contactListId], references: [id], onDelete: SetNull)
+  lastContactedAt DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@index([email])
+  @@index([contactListId])
+  @@index([lastContactedAt])
+}

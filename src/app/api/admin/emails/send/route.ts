@@ -74,6 +74,12 @@ export async function POST(req: NextRequest) {
     status = "failed";
   }
 
+  // Update lastContactedAt on the contact if they exist
+  await prisma.contact.updateMany({
+    where: { email: toEmail.toLowerCase() },
+    data: { lastContactedAt: new Date() },
+  }).catch(() => {});
+
   const record = await prisma.outboundEmail.create({
     data: {
       toEmail,
