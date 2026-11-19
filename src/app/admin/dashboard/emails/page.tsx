@@ -64,7 +64,7 @@ export default function AdminEmailsPage() {
   const replyRef = useRef<HTMLDivElement>(null);
   const [replySending, setReplySending] = useState(false);
 
-  const APARTMENT_SUBJECT = "Local perks widget for your apartment website";
+  const APARTMENT_SUBJECT = "Quick question, {{first_name}}";
   const APARTMENT_BODY = `<p>Hi {{first_name}},</p>
 <p>We're building a website widget, similar to the "Chat with us" or "Schedule a tour" tools on your site, that lets local restaurants and businesses offer discounts to prospective renters while they browse your apartment page.</p>
 <p>Most rewards programs start after move-in. We want to reach renters earlier and encourage them to explore the neighborhood while they're still deciding where to live.</p>
@@ -72,7 +72,7 @@ export default function AdminEmailsPage() {
 <p>If you have 15 minutes in the next few weeks, I'd love to tell you more.</p>
 <p>Best,<br/>Ryan</p>`;
 
-  const BUSINESS_SUBJECT = "Pilot partner invite — local apartment widget";
+  const BUSINESS_SUBJECT = "Quick question, {{first_name}}";
   const BUSINESS_BODY = `<p>Hi {{first_name}},</p>
 <p>We're building a widget for local apartment websites that offers prospective renters a discount for visiting nearby businesses while they search for a place to live.</p>
 <p>Renters browsing online often have no reason to visit the neighborhood. We want to give them one: a chance to experience a local spot like yours and, ideally, become a regular once they move in.</p>
@@ -80,6 +80,14 @@ export default function AdminEmailsPage() {
 <p>Our standard pricing is a per-click fee for each claimed discount plus a $10/month platform fee. Right now, though, we're looking for pilot partners, and we'll waive all fees permanently for up to 5 businesses in the area.</p>
 <p>If you'd be open to offering a discount and joining as a pilot partner, I'd love to connect.</p>
 <p>Best,<br/>Ryan</p>`;
+
+  // Live-update subject as first name is typed, as long as it still matches the "Quick question" pattern
+  useEffect(() => {
+    if (contactType !== "custom" && subject.startsWith("Quick question")) {
+      setSubject(toFirstName ? `Quick question, ${toFirstName}` : "Quick question,");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toFirstName]);
 
   const applyTemplate = (type: "custom" | "apartment" | "business") => {
     setContactType(type);
