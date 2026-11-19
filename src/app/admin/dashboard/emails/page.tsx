@@ -65,6 +65,15 @@ interface Thread {
   unreadCount: number;
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  type: string;
+  subject: string;
+  bodyHtml: string;
+  createdAt: string;
+}
+
 // ─── Templates ───────────────────────────────────────────────
 
 const APARTMENT_BODY = `<p>Hi {{first_name}},</p>
@@ -101,7 +110,7 @@ function timeAgo(dateStr: string) {
 // ─── Main Page ───────────────────────────────────────────────
 
 export default function AdminEmailsPage() {
-  const [tab, setTab] = useState<"contacts" | "inbox">("contacts");
+  const [tab, setTab] = useState<"contacts" | "inbox" | "templates">("contacts");
 
   // Contacts state
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -115,9 +124,21 @@ export default function AdminEmailsPage() {
   const uploadTypeRef = useRef<"business" | "apartment">("business");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Templates state
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [newTemplate, setNewTemplate] = useState(false);
+  const [tplName, setTplName] = useState("");
+  const [tplType, setTplType] = useState<"business" | "apartment">("business");
+  const [tplSubject, setTplSubject] = useState("");
+  const tplEditorRef = useRef<HTMLDivElement>(null);
+  const [tplSaving, setTplSaving] = useState(false);
+
   // Compose (from contacts) state
   const [composingFor, setComposingFor] = useState<Contact | null>(null);
   const [composeTemplate, setComposeTemplate] = useState<"business" | "apartment">("business");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [templatePicked, setTemplatePicked] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
   const [composeSending, setComposeSending] = useState(false);
@@ -152,6 +173,15 @@ export default function AdminEmailsPage() {
       .finally(() => setContactsLoading(false));
   }, []);
 
+  // Load templates
+  const fetchTemplates = useCallback(() => {
+    fetch("/api/admin/email-templates")
+      .then((r) => r.json())
+      .then((d) => setTemplates(d.templates || []))
+      .catch(() => {})
+      .finally(() => setTemplatesLoading(false));
+  }, []);
+
   // Load inbox
   const fetchEmails = useCallback(() => {
     fetch("/api/admin/emails")
@@ -164,7 +194,7 @@ export default function AdminEmailsPage() {
       .finally(() => setInboxLoading(false));
   }, []);
 
-  useEffect(() => { fetchContacts(); fetchEmails(); }, [fetchContacts, fetchEmails]);
+  useEffect(() => { fetchContacts(); fetchEmails(); fetchTemplates(); }, [fetchContacts, fetchEmails, fetchTemplates]);
 
   // Live-update subject as first name is typed
   useEffect(() => {
@@ -174,17 +204,25 @@ export default function AdminEmailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFirstName]);
 
-  // Open contact compose modal — skip picker if contact has a known type
+  const applyBodyForContact = (bodyHtml: string, firstName: string | null) =>
+    bodyHtml.replace(/\{\{first_name\}\}/gi, firstName || "");
+
+  // Open contact compose modal — skip picker if only one template matches
   const openComposeFor = (contact: Contact) => {
     setComposingFor(contact);
     setComposeSent(false);
+    setSelectedTemplateId(null);
     setComposeSubject(getSubject(contact.firstName || ""));
-    if (contact.type === "business" || contact.type === "apartment") {
-      setComposeTemplate(contact.type);
+    const matching = templates.filter((t) => t.type === contact.type);
+    if (matching.length === 1) {
+      const tpl = matching[0];
+      setComposeTemplate(contact.type as "business" | "apartment");
+      setSelectedTemplateId(tpl.id);
+      setComposeSubject(applyBodyForContact(tpl.subject, contact.firstName));
       setTemplatePicked(true);
       setTimeout(() => {
         if (composeEditorRef.current) {
-          composeEditorRef.current.innerHTML = contact.type === "business" ? BUSINESS_BODY : APARTMENT_BODY;
+          composeEditorRef.current.innerHTML = applyBodyForContact(tpl.bodyHtml, contact.firstName);
         }
       }, 30);
     } else {
@@ -192,12 +230,14 @@ export default function AdminEmailsPage() {
     }
   };
 
-  const pickTemplate = (template: "business" | "apartment") => {
-    setComposeTemplate(template);
+  const pickTemplate = (tpl: EmailTemplate) => {
+    setComposeTemplate(tpl.type as "business" | "apartment");
+    setSelectedTemplateId(tpl.id);
+    setComposeSubject(applyBodyForContact(tpl.subject, composingFor?.firstName ?? null));
     setTemplatePicked(true);
     setTimeout(() => {
       if (composeEditorRef.current) {
-        composeEditorRef.current.innerHTML = template === "business" ? BUSINESS_BODY : APARTMENT_BODY;
+        composeEditorRef.current.innerHTML = applyBodyForContact(tpl.bodyHtml, composingFor?.firstName ?? null);
       }
     }, 30);
   };
@@ -438,7 +478,7 @@ export default function AdminEmailsPage() {
 
       {/* Tabs */}
       <div className="mt-6 flex gap-1 rounded-xl border border-glass-border bg-white/60 p-1 w-fit">
-        {(["contacts", "inbox"] as const).map((t) => (
+        {(["contacts", "inbox", "templates"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-5 py-2 text-[13px] font-medium transition-all capitalize ${tab === t ? "bg-coral text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}>
             {t === "inbox" ? (
               <span className="flex items-center gap-2">
@@ -687,19 +727,16 @@ export default function AdminEmailsPage() {
               <div>
                 <p className="mb-4 text-[13px] text-text-secondary">Choose a template to preview:</p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {([
-                    { key: "business", label: "Business", preview: `Hi ${composingFor.firstName || "there"}, We're building a widget for local apartment websites that offers prospective renters a discount for visiting nearby businesses...` },
-                    { key: "apartment", label: "Apartment", preview: `Hi ${composingFor.firstName || "there"}, We're building a website widget, similar to the "Chat with us" or "Schedule a tour" tools on your site...` },
-                  ] as const).filter(({ key }) => composingFor.type === key).map(({ key, label, preview }) => (
+                  {templates.filter((t) => t.type === composingFor.type).map((tpl) => (
                     <button
-                      key={key}
-                      onClick={() => pickTemplate(key)}
+                      key={tpl.id}
+                      onClick={() => pickTemplate(tpl)}
                       className="rounded-2xl border-2 border-glass-border bg-surface/40 p-4 text-left transition-all hover:border-coral/40 hover:bg-coral/5 hover:shadow-sm active:scale-[0.98]"
                     >
                       <div className="mb-2 flex items-center gap-2">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${key === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{label}</span>
+                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tpl.type === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{tpl.name}</span>
                       </div>
-                      <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-3">{preview}</p>
+                      <p className="text-[12px] leading-relaxed text-text-secondary line-clamp-3">{tpl.bodyHtml.replace(/<[^>]*>/g, "").replace(/\{\{first_name\}\}/gi, composingFor.firstName || "there")}</p>
                       <p className="mt-3 text-[11px] font-semibold text-coral">View template →</p>
                     </button>
                   ))}
@@ -710,8 +747,12 @@ export default function AdminEmailsPage() {
               <>
                 {/* Template switcher (back to picker) */}
                 <div className="mb-4 flex items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${composeTemplate === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>{composeTemplate}</span>
-                  <button onClick={() => setTemplatePicked(false)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">change template</button>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${composeTemplate === "business" ? "bg-coral/15 text-coral" : "bg-blue-50 text-blue-600"}`}>
+                    {templates.find((t) => t.id === selectedTemplateId)?.name ?? composeTemplate}
+                  </span>
+                  {templates.filter((t) => t.type === composingFor.type).length > 1 && (
+                    <button onClick={() => setTemplatePicked(false)} className="text-[11px] text-text-tertiary hover:text-coral transition-colors underline underline-offset-2">change template</button>
+                  )}
                 </div>
 
                 {/* Subject */}
@@ -736,6 +777,121 @@ export default function AdminEmailsPage() {
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── TEMPLATES TAB ──────────────────────────────────────── */}
+      {tab === "templates" && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[13px] text-text-secondary">Reusable email templates for outreach.</p>
+            <button onClick={() => { setNewTemplate(true); setEditingTemplate(null); setTplName(""); setTplType("business"); setTplSubject("Quick question, {{first_name}}"); setTimeout(() => { if (tplEditorRef.current) tplEditorRef.current.innerHTML = ""; }, 20); }} className="rounded-xl bg-coral px-4 py-2 text-[13px] font-medium text-white shadow-sm shadow-coral/20 hover:scale-[1.01] transition-all">
+              + New template
+            </button>
+          </div>
+
+          {/* Template editor (create or edit) */}
+          {(newTemplate || editingTemplate) && (
+            <div className="mb-6 rounded-2xl border border-glass-border bg-white/80 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[15px] font-semibold text-text-primary">{editingTemplate ? "Edit template" : "New template"}</h3>
+                <button onClick={() => { setNewTemplate(false); setEditingTemplate(null); }} className="text-[12px] text-text-tertiary hover:text-text-primary">Cancel</button>
+              </div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-text-tertiary mb-1">Template name</label>
+                    <input value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="e.g. Pilot Partner Outreach" className="w-full rounded-lg border border-glass-border bg-surface/50 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-text-tertiary mb-1">Type</label>
+                    <div className="flex gap-2">
+                      {(["business", "apartment"] as const).map((t) => (
+                        <button key={t} onClick={() => setTplType(t)} className={`flex-1 rounded-lg py-2 text-[12px] font-medium transition-all capitalize ${tplType === t ? "bg-coral text-white shadow-sm shadow-coral/20" : "border border-glass-border bg-white/80 text-text-secondary hover:bg-white"}`}>{t === "business" ? "Business" : "Apartment"}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-text-tertiary mb-1">Subject <span className="text-text-tertiary/60 font-normal">— use {"{{"} first_name {"}}"} for merge</span></label>
+                  <input value={tplSubject} onChange={(e) => setTplSubject(e.target.value)} className="w-full rounded-lg border border-glass-border bg-surface/50 px-3 py-2 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-text-tertiary mb-1">Body <span className="text-text-tertiary/60 font-normal">— use {"{{"} first_name {"}}"} for merge</span></label>
+                  <div
+                    ref={tplEditorRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    data-placeholder="Write your email body..."
+                    className="min-h-[160px] w-full rounded-lg border border-glass-border bg-surface/50 px-3 py-2.5 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral"
+                    style={{ whiteSpace: "pre-wrap" }}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    disabled={tplSaving}
+                    onClick={async () => {
+                      if (!tplName || !tplSubject || !tplEditorRef.current) return;
+                      const bodyHtml = tplEditorRef.current.innerHTML;
+                      if (!bodyHtml.replace(/<[^>]*>/g, "").trim()) return;
+                      setTplSaving(true);
+                      try {
+                        const method = editingTemplate ? "PUT" : "POST";
+                        const body = editingTemplate
+                          ? { id: editingTemplate.id, name: tplName, type: tplType, subject: tplSubject, bodyHtml }
+                          : { name: tplName, type: tplType, subject: tplSubject, bodyHtml };
+                        const r = await fetch("/api/admin/email-templates", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+                        if (r.ok) { fetchTemplates(); setNewTemplate(false); setEditingTemplate(null); }
+                      } finally { setTplSaving(false); }
+                    }}
+                    className="rounded-xl bg-coral px-6 py-2.5 text-[13px] font-medium text-white shadow-sm shadow-coral/20 hover:scale-[1.01] transition-all disabled:opacity-50"
+                  >
+                    {tplSaving ? "Saving..." : editingTemplate ? "Save changes" : "Create template"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Template list */}
+          {templatesLoading ? (
+            <div className="flex h-40 items-center justify-center"><div className="h-5 w-5 animate-spin rounded-full border-2 border-text-tertiary border-t-text-primary" /></div>
+          ) : templates.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-glass-border bg-white/50 py-16 text-center">
+              <p className="text-[15px] text-text-tertiary">No templates yet.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {templates.map((tpl) => (
+                <div key={tpl.id} className="group rounded-2xl border border-glass-border bg-white/70 p-5 backdrop-blur-sm hover:shadow-sm transition-all">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="text-[14px] font-semibold text-text-primary">{tpl.name}</p>
+                      <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${tpl.type === "business" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}>
+                        {tpl.type === "business" ? "Business" : "Apartment"}
+                      </span>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => {
+                        setEditingTemplate(tpl); setNewTemplate(false);
+                        setTplName(tpl.name); setTplType(tpl.type as "business" | "apartment"); setTplSubject(tpl.subject);
+                        setTimeout(() => { if (tplEditorRef.current) tplEditorRef.current.innerHTML = tpl.bodyHtml; }, 20);
+                      }} className="rounded-lg px-3 py-1.5 text-[11px] font-medium text-text-tertiary border border-glass-border bg-white hover:text-text-primary transition-colors">Edit</button>
+                      <button onClick={async () => {
+                        if (!confirm("Delete this template?")) return;
+                        await fetch("/api/admin/email-templates", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: tpl.id }) });
+                        fetchTemplates();
+                      }} className="flex h-7 w-7 items-center justify-center rounded-full text-text-tertiary/40 hover:bg-red-50 hover:text-red-500 transition-all">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-text-tertiary mb-2">{tpl.subject}</p>
+                  <p className="text-[12px] text-text-secondary line-clamp-2">{tpl.bodyHtml.replace(/<[^>]*>/g, "")}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
