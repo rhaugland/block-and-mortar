@@ -174,12 +174,22 @@ export default function AdminEmailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFirstName]);
 
-  // Open contact compose modal — show template picker first
+  // Open contact compose modal — skip picker if contact has a known type
   const openComposeFor = (contact: Contact) => {
     setComposingFor(contact);
-    setTemplatePicked(false);
     setComposeSent(false);
     setComposeSubject(getSubject(contact.firstName || ""));
+    if (contact.type === "business" || contact.type === "apartment") {
+      setComposeTemplate(contact.type);
+      setTemplatePicked(true);
+      setTimeout(() => {
+        if (composeEditorRef.current) {
+          composeEditorRef.current.innerHTML = contact.type === "business" ? BUSINESS_BODY : APARTMENT_BODY;
+        }
+      }, 30);
+    } else {
+      setTemplatePicked(false);
+    }
   };
 
   const pickTemplate = (template: "business" | "apartment") => {
@@ -680,7 +690,7 @@ export default function AdminEmailsPage() {
                   {([
                     { key: "business", label: "Business", preview: `Hi ${composingFor.firstName || "there"}, We're building a widget for local apartment websites that offers prospective renters a discount for visiting nearby businesses...` },
                     { key: "apartment", label: "Apartment", preview: `Hi ${composingFor.firstName || "there"}, We're building a website widget, similar to the "Chat with us" or "Schedule a tour" tools on your site...` },
-                  ] as const).map(({ key, label, preview }) => (
+                  ] as const).filter(({ key }) => composingFor.type === key).map(({ key, label, preview }) => (
                     <button
                       key={key}
                       onClick={() => pickTemplate(key)}
