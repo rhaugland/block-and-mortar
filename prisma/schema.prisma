@@ -283,6 +283,7 @@ model InboundEmail {
   subject   String
   bodyText  String?  @db.Text
   bodyHtml  String?  @db.Text
+  messageId String?  // RFC 2822 Message-ID header for threading
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 

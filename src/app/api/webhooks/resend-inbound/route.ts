@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
   let fullFrom = fromEmail || "";
   const resendKey = process.env.RESEND_API_KEY;
 
+  let messageId: string | null = null;
+
   if (receivingId && resendKey) {
     try {
       const res = await fetch(`https://api.resend.com/emails/receiving/${receivingId}`, {
@@ -30,6 +32,8 @@ export async function POST(req: NextRequest) {
         html = full.html || "";
         text = full.text || "";
         if (full.headers?.from) fullFrom = full.headers.from;
+        const rawMsgId = full.headers?.["message-id"] || full.headers?.["Message-ID"] || null;
+        if (rawMsgId) messageId = String(rawMsgId).trim();
       }
     } catch {}
   }
@@ -52,6 +56,7 @@ export async function POST(req: NextRequest) {
       subject,
       bodyText: text || null,
       bodyHtml: html || null,
+      messageId,
     },
   });
 

@@ -41,6 +41,7 @@ interface ReceivedEmail {
   subject: string;
   bodyText: string | null;
   bodyHtml: string | null;
+  messageId: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -51,6 +52,7 @@ interface ThreadMessage {
   subject: string;
   bodyHtml: string | null;
   bodyText: string | null;
+  messageId: string | null;
   read: boolean;
   status?: string;
   createdAt: string;
@@ -365,14 +367,14 @@ export default function AdminEmailsPage() {
       }
       const t = map.get(key)!;
       if (!t.name) t.name = [s.toFirstName, s.toLastName].filter(Boolean).join(" ");
-      t.messages.push({ id: s.id, direction: "sent", subject: s.subject, bodyHtml: s.bodyHtml, bodyText: s.body, read: true, status: s.status, createdAt: s.createdAt });
+      t.messages.push({ id: s.id, direction: "sent", subject: s.subject, bodyHtml: s.bodyHtml, bodyText: s.body, messageId: null, read: true, status: s.status, createdAt: s.createdAt });
     }
     for (const r of received) {
       const key = r.fromEmail.toLowerCase();
       if (!map.has(key)) map.set(key, { email: key, name: r.fromName || "", messages: [], lastActivity: r.createdAt, hasUnread: false, unreadCount: 0 });
       const t = map.get(key)!;
       if (!t.name && r.fromName) t.name = r.fromName;
-      t.messages.push({ id: r.id, direction: "received", subject: r.subject, bodyHtml: r.bodyHtml, bodyText: r.bodyText, read: r.read, createdAt: r.createdAt });
+      t.messages.push({ id: r.id, direction: "received", subject: r.subject, bodyHtml: r.bodyHtml, bodyText: r.bodyText, messageId: r.messageId ?? null, read: r.read, createdAt: r.createdAt });
       if (!r.read) { t.hasUnread = true; t.unreadCount++; }
     }
     for (const t of map.values()) {
@@ -413,10 +415,19 @@ export default function AdminEmailsPage() {
     setReplySending(true);
     const lastSubject = openThread.messages[openThread.messages.length - 1]?.subject || "Re:";
     const reSubject = lastSubject.startsWith("Re:") ? lastSubject : `Re: ${lastSubject}`;
+    // Find the most recent inbound message ID for proper email threading
+    const lastInbound = [...openThread.messages].reverse().find((m) => m.direction === "received" && m.messageId);
     try {
       const r = await fetch("/api/admin/emails/send", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toEmail: openThread.email, toFirstName: openThread.name.split(" ")[0] || null, toLastName: openThread.name.split(" ").slice(1).join(" ") || null, subject: reSubject, bodyHtml }),
+        body: JSON.stringify({
+          toEmail: openThread.email,
+          toFirstName: openThread.name.split(" ")[0] || null,
+          toLastName: openThread.name.split(" ").slice(1).join(" ") || null,
+          subject: reSubject,
+          bodyHtml,
+          inReplyToMessageId: lastInbound?.messageId ?? null,
+        }),
       });
       if (r.ok) { replyRef.current.innerHTML = ""; fetchEmails(); }
     } catch {}

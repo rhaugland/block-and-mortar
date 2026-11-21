@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { toEmail, toFirstName, toLastName, subject, bodyHtml } = await req.json();
+  const { toEmail, toFirstName, toLastName, subject, bodyHtml, inReplyToMessageId } = await req.json();
 
   if (!toEmail || !subject || !bodyHtml) {
     return NextResponse.json({ error: "toEmail, subject, and bodyHtml are required" }, { status: 400 });
@@ -40,6 +40,12 @@ export async function POST(req: NextRequest) {
           to: toEmail,
           subject: mergedSubject,
           reply_to: "ryan@blockandmortar.co",
+          ...(inReplyToMessageId ? {
+            headers: {
+              "In-Reply-To": inReplyToMessageId,
+              "References": inReplyToMessageId,
+            },
+          } : {}),
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px;">
               ${mergedBody.replace(/<p(\s|>)/gi, '<p style="margin:0 0 24px 0;"$1')}
